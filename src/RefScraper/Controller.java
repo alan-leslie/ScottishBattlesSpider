@@ -87,7 +87,11 @@ public class Controller extends Thread {
                         try {
                             theLogger.log(Level.INFO, "Controller - waiting for worker no = {0}", j);
                             RefThree theTaskResult = theWorkers.get(j).get();
-                            theRefs.addRef(theTaskResult.getId(), theTaskResult);
+                            
+                            if(theTaskResult != null){
+                                theRefs.addRef(theTaskResult.getId(), theTaskResult);
+                            }
+                            
                             int pctProgress = ((j +1) * 100)/workersSize;
                             if((pctProgress - prevPctProgress) >= 1){
                                 theProgressDisplay.setProgress(pctProgress);

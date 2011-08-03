@@ -12,7 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Data class for collection of castles.
+ * Data class for collection of references.
  * @author al
  */
 public class RefThrees {

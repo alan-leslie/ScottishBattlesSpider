@@ -10,8 +10,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -22,7 +25,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * Class to hold information for placing a castle
+ * Class to hold information for placing a reference that has position and date
+ * or duration
  * @author al
  */
 public class RefThree implements Comparable {
@@ -47,8 +51,14 @@ public class RefThree implements Comparable {
     public RefThree(String theTitle,
             String theHREF,
             Logger logger) {
+        String thePageHREF = theHREF;
+
+        if (thePageHREF.indexOf("http://") != 0) {
+            thePageHREF = theBaseURL + thePageHREF;
+        }
+
         try {
-            theURL = new URL(theHREF);
+            theURL = new URL(thePageHREF);
         } catch (MalformedURLException ex) {
             Logger.getLogger(RefThree.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -77,9 +87,18 @@ public class RefThree implements Comparable {
      * @param ps - the stream to where the data is written
      */
     public void outputAsKML(PrintStream ps) {
-        ps.print("<event start=\"");
+        ps.print("<event ");
+        ps.print("start=\"");
         ps.print(theStartDate.toString());
-        ps.print("\" title=\"");
+        ps.print("\" ");
+
+        if (theEndDate.after(theStartDate)) {
+            ps.print("end=\"");
+            ps.print(theEndDate.toString());
+            ps.print("\" ");
+        }
+
+        ps.print("title=\"");
         ps.print(theName);
         ps.print("\">");
         ps.println();
@@ -236,10 +255,9 @@ public class RefThree implements Comparable {
                             if (theDetail != null) {
                                 String detailText = theDetail.getTextContent();
 
-                                if (isPeriod(detailText)) {
-                                    // todo split period and set start and end 
-                                    // it                               
-                                } else {
+                                boolean periodDateSet = setPeriod(detailText);
+
+                                if (!periodDateSet) {
                                     Date theDate = getDate(detailText);
 
                                     if (theDate != null) {
@@ -293,22 +311,22 @@ public class RefThree implements Comparable {
                                 XPath anchorsXpath = XPathFactory.newInstance().newXPath();
                                 NodeList theAnchors = (NodeList) headerXpath.evaluate("./span/a", theDetail, XPathConstants.NODESET);
 
-                                if (theAnchors != null){
+                                if (theAnchors != null) {
                                     int theAnchorsLength = theAnchors.getLength();
-                                
-                                    if(theAnchorsLength > 0){                                   
-                                        Element thePlaceElement = (Element)theAnchors.item(0);
+
+                                    if (theAnchorsLength > 0) {
+                                        Element thePlaceElement = (Element) theAnchors.item(0);
                                         String thePlaceHREF = thePlaceElement.getAttribute("href");
-                                        if(thePlaceHREF.indexOf("http://") != 0) {
-                                            thePlaceHREF = theBaseURL + thePlaceHREF;                    
+                                        if (thePlaceHREF.indexOf("http://") != 0) {
+                                            thePlaceHREF = theBaseURL + thePlaceHREF;
                                         }
-                                        
+
                                         try {
                                             theLocationRef = new URL(thePlaceHREF);
                                             populateLatLong();
                                         } catch (MalformedURLException ex) {
                                             theLogger.log(Level.SEVERE, "Unable to format place URL", ex);
-                                        }  
+                                        }
                                     }
                                 }
                             }
@@ -383,8 +401,26 @@ public class RefThree implements Comparable {
         return retVal;
     }
 
-    private boolean isPeriod(String dateString) {
-        boolean retVal = false;
+    private boolean setPeriod(String dateString) {
+        Pattern thePattern = Pattern.compile("\\d\\d\\d\\d-\\d\\d\\d\\d");
+        Matcher theMatcher = thePattern.matcher(dateString);
+        boolean retVal = theMatcher.matches();
+        
+        if(retVal){
+            Scanner s = new Scanner(dateString).useDelimiter("-");
+            Integer theStartYear = new Integer(s.nextInt());
+            Integer theEndYear = new Integer(s.nextInt());
+
+            DateFormat theYearFormat = new SimpleDateFormat("yyyy");
+
+            try {
+                theStartDate = theYearFormat.parse(theStartYear.toString());
+                theEndDate = theYearFormat.parse(theEndYear.toString());
+            } catch (ParseException ex) {
+                Logger.getLogger(RefThree.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
         return retVal;
     }
 
@@ -395,6 +431,7 @@ public class RefThree implements Comparable {
         List<DateFormat> theFormatters = new ArrayList<DateFormat>();
         theFormatters.add(new SimpleDateFormat("dd MMMM yyyy"));
         theFormatters.add(new SimpleDateFormat("MMMM dd, yyyy"));
+        theFormatters.add(new SimpleDateFormat("MMMM yyyy"));
         theFormatters.add(new SimpleDateFormat("yyyy"));
         theFormatters.add(new SimpleDateFormat("dd/MM/yyyy"));
         theFormatters.add(new SimpleDateFormat("MM/dd/yyyy"));

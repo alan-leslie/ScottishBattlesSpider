@@ -4,7 +4,7 @@ package RefScraper;
  * 
  *
  */
-import RefScraper.ui.ScottishCastlesScraper;
+import RefScraper.ui.RefScraperUI;
 import java.io.IOException;
 import java.io.FileInputStream;
 import java.util.Properties;
@@ -44,11 +44,11 @@ public class Main {
 
         String poolSizeStr = properties.getProperty("PoolSize", "2");
         int poolSize = Integer.parseInt(poolSizeStr);
-        String theURL = properties.getProperty("StartURL", "http://localhost/Category:Battles_involving_Scotland_frankfurt.html");
+        String theURL = properties.getProperty("StartURL", "http://en.wikipedia.org/wiki/Category:Battles_involving_Scotland");
         String theOutputDir = properties.getProperty("OutputDir", ".");
 
         Logger theLogger = Main.makeLogger();
-        ScottishCastlesScraper theUI = new ScottishCastlesScraper();
+        RefScraperUI theUI = new RefScraperUI();
         Controller theController = new Controller(theURL,
                 poolSize, theLogger);
 
@@ -65,7 +65,7 @@ public class Main {
      * @return - valid logger (single file).
      */
     private static Logger makeLogger() {
-        Logger lgr = Logger.getLogger("CastleScraper");
+        Logger lgr = Logger.getLogger("RefScraper");
         lgr.setUseParentHandlers(false);
         lgr.addHandler(simpleFileHandler());
         return lgr;
@@ -77,7 +77,7 @@ public class Main {
      */
     private static FileHandler simpleFileHandler() {
         try {
-            FileHandler hdlr = new FileHandler("CastleScraper.log");
+            FileHandler hdlr = new FileHandler("RefScraper.log");
             hdlr.setFormatter(new SimpleFormatter());
             return hdlr;
         } catch (Exception e) {

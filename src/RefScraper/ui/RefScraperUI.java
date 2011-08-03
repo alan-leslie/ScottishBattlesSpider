@@ -12,7 +12,7 @@ import javax.swing.SwingUtilities;
  *
  * @author al
  */
-public class ScottishCastlesScraper extends javax.swing.JFrame implements ITaskComplete {
+public class RefScraperUI extends javax.swing.JFrame implements ITaskComplete {
 
     /**
      * The underlying spider object.
@@ -29,7 +29,7 @@ public class ScottishCastlesScraper extends javax.swing.JFrame implements ITaskC
      * components that make up the user interface
      * for this program.
      */
-    public ScottishCastlesScraper() {
+    public RefScraperUI() {
         setTitle("Download Site");
         getContentPane().setLayout(null);
         setSize(234, 140);
