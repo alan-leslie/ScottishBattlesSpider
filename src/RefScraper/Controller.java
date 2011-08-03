@@ -25,7 +25,7 @@ public class Controller extends Thread {
     protected ArrayList<Future<RefThree>> theWorkers = new ArrayList<Future<RefThree>>();
     protected int thePoolSize;
     private final Logger theLogger;
-    private final RefThrees theCastles;
+    private final RefThrees theRefs;
     private final String theURL;
     private ScrapeProgressDisplay theProgressDisplay;
 
@@ -44,7 +44,7 @@ public class Controller extends Thread {
             Logger logger) {
         thePoolSize = poolSize;
         theLogger = logger;
-        theCastles = new RefThrees(theLogger);
+        theRefs = new RefThrees(theLogger);
         theURL = url;
     }
 
@@ -87,7 +87,7 @@ public class Controller extends Thread {
                         try {
                             theLogger.log(Level.INFO, "Controller - waiting for worker no = {0}", j);
                             RefThree theTaskResult = theWorkers.get(j).get();
-                            theCastles.addRef(theTaskResult.getId(), theTaskResult);
+                            theRefs.addRef(theTaskResult.getId(), theTaskResult);
                             int pctProgress = ((j +1) * 100)/workersSize;
                             if((pctProgress - prevPctProgress) >= 1){
                                 theProgressDisplay.setProgress(pctProgress);
@@ -150,6 +150,6 @@ public class Controller extends Thread {
      * @param outputDir 
      */
     public void outputResults(String outputDir) {
-        theCastles.outputAsKML(outputDir);
+        theRefs.outputAsKML(outputDir);
     }
 }

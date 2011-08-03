@@ -4,6 +4,10 @@ import RefScraper.HTMLPageParser;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.xpath.XPath;
@@ -134,14 +138,14 @@ public class RefThree implements Comparable {
         boolean retVal = false;
         HTMLPageParser theParser = new HTMLPageParser(theLogger);
         Document document = theParser.getParsedPage(theURL);
-        
+
         populateCoordsFromPage(document);
         NodeList summaryFromPage = getSummaryFromPage(document);
-        
-        if(summaryFromPage != null){
-          populateDateFromSummaryData(summaryFromPage);
-          populateLocationFromSummaryData(summaryFromPage);
-          retVal = true;
+
+        if (summaryFromPage != null) {
+            populateDateFromSummaryData(summaryFromPage);
+            populateLocationFromSummaryData(summaryFromPage);
+            retVal = true;
         }
 
         return retVal;
@@ -154,31 +158,33 @@ public class RefThree implements Comparable {
     private void populateCoordsFromPage(Document document) {
     }
 
-   /*
+    /*
      * Get the summary data from the page
      *
      */
     private NodeList getSummaryFromPage(Document theDocument) {
-       NodeList retVal = null;
+        NodeList retVal = null;
 
-        try {         
+        try {
             XPath infoboxTableXpath = XPathFactory.newInstance().newXPath();
             NodeList theData = (NodeList) infoboxTableXpath.evaluate("html//table[@class='infobox vevent']/tr", theDocument, XPathConstants.NODESET);
             int theLength = theData.getLength();
-            
-            for(int i = 0; i < theLength && retVal == null; ++i){
+
+            for (int i = 0; i < theLength && retVal == null; ++i) {
                 XPath summaryXpath = XPathFactory.newInstance().newXPath();
-                NodeList theSummary = (NodeList) summaryXpath.evaluate("./th[@class='summary'", theData, XPathConstants.NODESET);
-                
-                if(theSummary.getLength() > 0){
+                NodeList theSummary = (NodeList) summaryXpath.evaluate("./th[@class='summary']", theData.item(i), XPathConstants.NODESET);
+
+                if (theSummary != null
+                        && theSummary.getLength() > 0) {
+                    String theText = theSummary.item(0).getTextContent();
                     retVal = theData;
                 }
-                
+
             }
         } catch (XPathExpressionException ex) {
-            Logger.getLogger(RefThree.class.getName()).log(Level.SEVERE, null, ex);
+            theLogger.log(Level.SEVERE, null, ex);
         }
-        
+
         return retVal;
     }
 
@@ -187,45 +193,73 @@ public class RefThree implements Comparable {
      *
      */
     private void populateDateFromSummaryData(NodeList summaryData) {
-         try {         
+        try {
             int theLength = summaryData.getLength();
             boolean dateFound = false;
-            
-            for(int i = 0; i < theLength && !dateFound; ++i){
-                XPath summaryXpath = XPathFactory.newInstance().newXPath();
-                NodeList theSummary = (NodeList) summaryXpath.evaluate("./tr", summaryData, XPathConstants.NODESET);
-                
-                if(theSummary.getLength() > 0){
-                    // look at the th for "Date"
-                    // then parse the td
+
+            for (int i = 0; i < theLength && !dateFound; ++i) {
+                XPath headerXpath = XPathFactory.newInstance().newXPath();
+                Node theHeader = (Node) headerXpath.evaluate("./td/table/tr/th", summaryData.item(i), XPathConstants.NODE);
+
+                if (theHeader != null) {
+                    String theText = theHeader.getTextContent();
+
+                    if (theText != null
+                            && theText.equalsIgnoreCase("Date")) {
+                        XPath detailXpath = XPathFactory.newInstance().newXPath();
+                        Node theDetail = (Node) headerXpath.evaluate("./td/table/tr/td", summaryData.item(i), XPathConstants.NODE);
+
+                        if (theDetail != null) {
+                            String detailText = theDetail.getTextContent();
+                            DateFormat formatter = new SimpleDateFormat("dd MMMM yyyy");
+                            try {
+                                Date theDate = (Date) formatter.parse(detailText);
+                                boolean dateParsed = true;
+                            } catch (ParseException ex) {
+                                theLogger.log(Level.FINEST, "Cannot get date", ex);
+                            }
+                        }
+
+                        dateFound = true;
+                    }
                 }
             }
         } catch (XPathExpressionException ex) {
-            Logger.getLogger(RefThree.class.getName()).log(Level.SEVERE, null, ex);
+            theLogger.log(Level.SEVERE, null, ex);
         }
     }
-    
+
     /*
      * populate the position from the summary data
      * either use the summary ref or the summary place
      *
      */
     private void populateLocationFromSummaryData(NodeList summaryData) {
-         try {         
-            int theLength = summaryData.getLength();
-            boolean dateFound = false;
-            
-            for(int i = 0; i < theLength && !dateFound; ++i){
-                XPath summaryXpath = XPathFactory.newInstance().newXPath();
-                NodeList theSummary = (NodeList) summaryXpath.evaluate("./tr", summaryData, XPathConstants.NODESET);
-                
-                if(theSummary.getLength() > 0){
-                    // look at the th for "Date"
-                    // then parse the td
+        int theLength = summaryData.getLength();
+        boolean locationFound = false;
+
+        try {
+            for (int i = 0; i < theLength && !locationFound; ++i) {
+                XPath headerXpath = XPathFactory.newInstance().newXPath();
+                Node theHeader = (Node) headerXpath.evaluate("./td/table/tr/th", summaryData.item(i), XPathConstants.NODE);
+
+                if (theHeader != null) {
+                    String theText = theHeader.getTextContent();
+
+                    if (theText != null
+                            && theText.equalsIgnoreCase("Location")) {
+                        XPath detailXpath = XPathFactory.newInstance().newXPath();
+                        Node theDetail = (Node) headerXpath.evaluate("./td/table/tr/td", summaryData.item(i), XPathConstants.NODE);
+
+                        if (theDetail != null) {
+                        }
+
+                        locationFound = true;
+                    }
                 }
             }
         } catch (XPathExpressionException ex) {
-            Logger.getLogger(RefThree.class.getName()).log(Level.SEVERE, null, ex);
+            theLogger.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -264,7 +298,7 @@ public class RefThree implements Comparable {
                 }
             }
         } catch (XPathExpressionException theException) {
-            //Log.logException("Placemark populateLatLongFromURL:" + getId(), theException);
+            theLogger.log(Level.SEVERE, "Placemark populateLatLongFromURL:" + getId(), theException);
         }
 
         if (theLatitude == null
@@ -305,7 +339,7 @@ public class RefThree implements Comparable {
                 theLatitude = element.getTextContent();
             }
         } catch (XPathExpressionException theException) {
-            //Log.logException("Placemark populateLatLong:" + getId(), theException);
+            theLogger.log(Level.SEVERE, "Placemark populateLatLongFromURL:" + getId(), theException);
         }
 
         if (theLatitude == null
