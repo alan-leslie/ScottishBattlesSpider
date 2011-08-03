@@ -7,6 +7,8 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,9 +32,10 @@ public class RefThree implements Comparable {
     private String theLongitude;
     private URL theLocationRef;
     private URL thePlace;
-    private String theStartDate;
-    private String theEndDate;
+    private Date theStartDate;
+    private Date theEndDate;
     private URL theURL;
+    private String theBaseURL = "http://en.wikipedia.org";
     private final Logger theLogger;
 
     /**
@@ -74,21 +77,13 @@ public class RefThree implements Comparable {
      * @param ps - the stream to where the data is written
      */
     public void outputAsKML(PrintStream ps) {
-        ps.print("<event>");
-        ps.println();
-        ps.print("<name>");
+        ps.print("<event start=\"");
+        ps.print(theStartDate.toString());
+        ps.print("\" title=\"");
         ps.print(theName);
-        ps.print("</name>");
+        ps.print("\">");
         ps.println();
         ps.print("<description>");
-        ps.println();
-        ps.print("&lt;p&gt;Condition: ");
-        // todo ps.print(theCondition);
-        ps.print("&lt;/p&gt;");
-        ps.println();
-        ps.print("&lt;p&gt;Date: ");
-        // todops.print(theDate);
-        ps.print("&lt;/p&gt;");
         ps.println();
 
         if (theURL != null) {
@@ -105,8 +100,6 @@ public class RefThree implements Comparable {
 
         ps.print("</description>");
         ps.println();
-        ps.print("<styleUrl>#exampleStyleMap</styleUrl>");
-        ps.println();
         ps.print("<Point>");
         ps.println();
         ps.print("<coordinates>");
@@ -117,7 +110,7 @@ public class RefThree implements Comparable {
         ps.println();
         ps.print("</Point>");
         ps.println();
-        ps.print("</Placemark>");
+        ps.print("</event>");
         ps.println();
     }
 
@@ -135,27 +128,50 @@ public class RefThree implements Comparable {
      * @return - a unique id for the placemark
      */
     public boolean complete() {
-        boolean retVal = false;
         HTMLPageParser theParser = new HTMLPageParser(theLogger);
-        Document document = theParser.getParsedPage(theURL);
+        Document theDocument = theParser.getParsedPage(theURL);
 
-        populateCoordsFromPage(document);
-        NodeList summaryFromPage = getSummaryFromPage(document);
+        populateCoordsFromPage(theDocument);
+        NodeList summaryFromPage = getSummaryFromPage(theDocument);
 
         if (summaryFromPage != null) {
             populateDateFromSummaryData(summaryFromPage);
-            populateLocationFromSummaryData(summaryFromPage);
-            retVal = true;
+
+            if (!isPositionSet()) {
+                populateLocationFromSummaryData(summaryFromPage);
+            }
         }
 
-        return retVal;
+        if (isComplete()) {
+            return true;
+        } else {
+            theLogger.log(Level.WARNING, "Unable to complete {0}", getId());
+            return false;
+        }
     }
 
     /*
      * Get the position from the coordinates field on the top left of the page
      *
      */
-    private void populateCoordsFromPage(Document document) {
+    private void populateCoordsFromPage(Document theDocument) {
+        try {
+            XPath latitudeXpath = XPathFactory.newInstance().newXPath();
+            Node theLatitudeNode = (Node) latitudeXpath.evaluate("html/body//span[@class='latitude']", theDocument, XPathConstants.NODE);
+
+            if (theLatitudeNode != null) {
+                theLatitude = theLatitudeNode.getTextContent();
+            }
+
+            XPath longitudeXpath = XPathFactory.newInstance().newXPath();
+            Node theLongitudeNode = (Node) longitudeXpath.evaluate("html/body//span[@class='longitude']", theDocument, XPathConstants.NODE);
+
+            if (theLongitudeNode != null) {
+                theLongitude = theLongitudeNode.getTextContent();
+            }
+        } catch (XPathExpressionException ex) {
+            theLogger.log(Level.SEVERE, null, ex);
+        }
     }
 
     /*
@@ -198,29 +214,43 @@ public class RefThree implements Comparable {
             boolean dateFound = false;
 
             for (int i = 0; i < theLength && !dateFound; ++i) {
-                XPath headerXpath = XPathFactory.newInstance().newXPath();
-                Node theHeader = (Node) headerXpath.evaluate("./td/table/tr/th", summaryData.item(i), XPathConstants.NODE);
+                XPath rowXpath = XPathFactory.newInstance().newXPath();
+                NodeList theRows = (NodeList) rowXpath.evaluate("./td/table/tr", summaryData.item(i), XPathConstants.NODESET);
 
-                if (theHeader != null) {
-                    String theText = theHeader.getTextContent();
+                if (theRows != null) {
+                    int theRowsLength = theRows.getLength();
 
-                    if (theText != null
-                            && theText.equalsIgnoreCase("Date")) {
-                        XPath detailXpath = XPathFactory.newInstance().newXPath();
-                        Node theDetail = (Node) headerXpath.evaluate("./td/table/tr/td", summaryData.item(i), XPathConstants.NODE);
+                    for (int j = 0; j < theRowsLength; ++j) {
+                        Node theRowNode = theRows.item(j);
 
-                        if (theDetail != null) {
-                            String detailText = theDetail.getTextContent();
-                            DateFormat formatter = new SimpleDateFormat("dd MMMM yyyy");
-                            try {
-                                Date theDate = (Date) formatter.parse(detailText);
-                                boolean dateParsed = true;
-                            } catch (ParseException ex) {
-                                theLogger.log(Level.FINEST, "Cannot get date", ex);
+                        XPath headerXpath = XPathFactory.newInstance().newXPath();
+                        Node theHeaderNode = (Node) rowXpath.evaluate("./th", theRowNode, XPathConstants.NODE);
+
+                        String theText = theHeaderNode.getTextContent();
+
+                        if (theText != null
+                                && theText.equalsIgnoreCase("Date")) {
+                            XPath detailXpath = XPathFactory.newInstance().newXPath();
+                            Node theDetail = (Node) headerXpath.evaluate("./td", theRowNode, XPathConstants.NODE);
+
+                            if (theDetail != null) {
+                                String detailText = theDetail.getTextContent();
+
+                                if (isPeriod(detailText)) {
+                                    // todo split period and set start and end 
+                                    // it                               
+                                } else {
+                                    Date theDate = getDate(detailText);
+
+                                    if (theDate != null) {
+                                        theStartDate = theDate;
+                                        theEndDate = theDate;
+                                    }
+                                }
                             }
-                        }
 
-                        dateFound = true;
+                            dateFound = true;
+                        }
                     }
                 }
             }
@@ -240,21 +270,51 @@ public class RefThree implements Comparable {
 
         try {
             for (int i = 0; i < theLength && !locationFound; ++i) {
-                XPath headerXpath = XPathFactory.newInstance().newXPath();
-                Node theHeader = (Node) headerXpath.evaluate("./td/table/tr/th", summaryData.item(i), XPathConstants.NODE);
+                XPath rowXpath = XPathFactory.newInstance().newXPath();
+                NodeList theRows = (NodeList) rowXpath.evaluate("./td/table/tr", summaryData.item(i), XPathConstants.NODESET);
 
-                if (theHeader != null) {
-                    String theText = theHeader.getTextContent();
+                if (theRows != null) {
+                    int theRowsLength = theRows.getLength();
 
-                    if (theText != null
-                            && theText.equalsIgnoreCase("Location")) {
-                        XPath detailXpath = XPathFactory.newInstance().newXPath();
-                        Node theDetail = (Node) headerXpath.evaluate("./td/table/tr/td", summaryData.item(i), XPathConstants.NODE);
+                    for (int j = 0; j < theRowsLength; ++j) {
+                        Node theRowNode = theRows.item(j);
 
-                        if (theDetail != null) {
+                        XPath headerXpath = XPathFactory.newInstance().newXPath();
+                        Node theHeaderNode = (Node) rowXpath.evaluate("./th", theRowNode, XPathConstants.NODE);
+
+                        String theText = theHeaderNode.getTextContent();
+
+                        if (theText != null
+                                && theText.equalsIgnoreCase("Location")) {
+                            XPath detailXpath = XPathFactory.newInstance().newXPath();
+                            Node theDetail = (Node) headerXpath.evaluate("./td", theRowNode, XPathConstants.NODE);
+
+                            if (theDetail != null) {
+                                XPath anchorsXpath = XPathFactory.newInstance().newXPath();
+                                NodeList theAnchors = (NodeList) headerXpath.evaluate("./span/a", theDetail, XPathConstants.NODESET);
+
+                                if (theAnchors != null){
+                                    int theAnchorsLength = theAnchors.getLength();
+                                
+                                    if(theAnchorsLength > 0){                                   
+                                        Element thePlaceElement = (Element)theAnchors.item(0);
+                                        String thePlaceHREF = thePlaceElement.getAttribute("href");
+                                        if(thePlaceHREF.indexOf("http://") != 0) {
+                                            thePlaceHREF = theBaseURL + thePlaceHREF;                    
+                                        }
+                                        
+                                        try {
+                                            theLocationRef = new URL(thePlaceHREF);
+                                            populateLatLong();
+                                        } catch (MalformedURLException ex) {
+                                            theLogger.log(Level.SEVERE, "Unable to format place URL", ex);
+                                        }  
+                                    }
+                                }
+                            }
+
+                            locationFound = true;
                         }
-
-                        locationFound = true;
                     }
                 }
             }
@@ -263,62 +323,11 @@ public class RefThree implements Comparable {
         }
     }
 
-    /*
-     * Get the position from the lt long given in the summary or
-     * use the place location to get it
-     *
-     */
-    private void populateLocationFromSummary() {
-    }
-
-    /*
-     * @precon - theURL is valid
-     * @postcon - lat long set 
-     * @return
-     */
-    private boolean populateLatLongFromURL() {
-        if (theURL == null) {
-            return false;
-        }
-
-        HTMLPageParser theParser = new HTMLPageParser(theLogger);
-        Document document = theParser.getParsedPage(theURL);
-
-        try {
-            XPath lonXpath = XPathFactory.newInstance().newXPath();
-            NodeList lonNodeList = (NodeList) lonXpath.evaluate("html//span[@class='geo']", document, XPathConstants.NODESET);
-            int lonLength = lonNodeList.getLength();
-            if (lonLength > 0) {
-                Element element = (Element) lonNodeList.item(0);
-                String[] strArr = element.getTextContent().split(";");
-
-                if (strArr.length > 1) {
-                    theLatitude = strArr[0];
-                    theLongitude = strArr[1];
-                }
-            }
-        } catch (XPathExpressionException theException) {
-            theLogger.log(Level.SEVERE, "Placemark populateLatLongFromURL:" + getId(), theException);
-        }
-
-        if (theLatitude == null
-                || theLongitude == null) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     /**
-     * Try and get the latitude and longitude from either the location or
-     * the underlying URL
+     * Try and get the latitude and longitude from either the place url
      * @return
      */
-    public boolean populateLatLong() {
-        if (theLocationRef == null) {
-            return populateLatLongFromURL();
-        }
-
+    private boolean populateLatLong() {
         HTMLPageParser theParser = new HTMLPageParser(theLogger);
         Document document = theParser.getParsedPage(theLocationRef);
 
@@ -348,6 +357,62 @@ public class RefThree implements Comparable {
         } else {
             return true;
         }
+    }
+
+    private boolean isPositionSet() {
+        boolean latValid = (theLatitude != null && !theLatitude.isEmpty());
+        boolean lonValid = (theLongitude != null && !theLongitude.isEmpty());
+
+        boolean retVal = latValid && lonValid;
+
+        return retVal;
+    }
+
+    private boolean isPeriodSet() {
+        boolean startDateValid = (theStartDate != null);
+        boolean endDateValid = (theEndDate != null);
+
+        boolean retVal = startDateValid && endDateValid;
+
+        return retVal;
+    }
+
+    private boolean isComplete() {
+        boolean retVal = isPositionSet() && isPeriodSet();
+
+        return retVal;
+    }
+
+    private boolean isPeriod(String dateString) {
+        boolean retVal = false;
+        return retVal;
+    }
+
+    // todo - formatters list should be set up once (if needed) only
+    // deal with confusion between dd/mm/yyyy and mm/dd/yyyy
+    private Date getDate(String dateString) {
+        Date retVal = null;
+        List<DateFormat> theFormatters = new ArrayList<DateFormat>();
+        theFormatters.add(new SimpleDateFormat("dd MMMM yyyy"));
+        theFormatters.add(new SimpleDateFormat("MMMM dd, yyyy"));
+        theFormatters.add(new SimpleDateFormat("yyyy"));
+        theFormatters.add(new SimpleDateFormat("dd/MM/yyyy"));
+        theFormatters.add(new SimpleDateFormat("MM/dd/yyyy"));
+
+        for (int i = 0; i < theFormatters.size() && retVal == null; ++i) {
+            try {
+                Date theDate = theFormatters.get(i).parse(dateString);
+                retVal = theDate;
+            } catch (ParseException ex) {
+                // not really an exceptional case
+            }
+        }
+
+        if (retVal == null) {
+            theLogger.log(Level.WARNING, "Cannot get date");
+        }
+
+        return retVal;
     }
 
     public int compareTo(Object anotherPlacemark) throws ClassCastException {

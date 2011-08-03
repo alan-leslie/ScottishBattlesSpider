@@ -44,7 +44,7 @@ public class Main {
 
         String poolSizeStr = properties.getProperty("PoolSize", "2");
         int poolSize = Integer.parseInt(poolSizeStr);
-        String theURL = properties.getProperty("StartURL", "http://localhost/Category:Battles_involving_Scotland.html");
+        String theURL = properties.getProperty("StartURL", "http://localhost/Category:Battles_involving_Scotland_frankfurt.html");
         String theOutputDir = properties.getProperty("OutputDir", ".");
 
         Logger theLogger = Main.makeLogger();

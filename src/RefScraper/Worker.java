@@ -49,7 +49,7 @@ public class Worker implements Callable<RefThree> {
         theLogger.log(Level.FINEST, "LocationWorker call - Completing: {0}", _placemark.getId());
         RefThree theResult = new RefThree(_placemark);
         boolean isError = !(theResult.complete());
-        
+       
         if (isError) {
             theLogger.log(Level.INFO, "LocationWorker call unsuccessful");
             return null;
