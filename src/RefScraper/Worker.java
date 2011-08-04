@@ -46,15 +46,15 @@ public class Worker implements Callable<RefThree> {
      * @return - a fully populated placemark if successful otherwise null
      */
     public RefThree call() {
-        theLogger.log(Level.FINEST, "LocationWorker call - Completing: {0}", _placemark.getId());
+        theLogger.log(Level.FINEST, "Worker call - Completing: {0}", _placemark.getId());
         RefThree theResult = new RefThree(_placemark);
         boolean isError = !(theResult.complete());
        
         if (isError) {
-            theLogger.log(Level.INFO, "LocationWorker call unsuccessful");
+            theLogger.log(Level.INFO, "Worker call unsuccessful");
             return null;
         } else {
-            theLogger.log(Level.INFO, "LocationWorker call successful");
+            theLogger.log(Level.INFO, "Worker call successful");
             return theResult;
         }
     }

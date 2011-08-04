@@ -70,7 +70,7 @@ public class Controller extends Thread {
      */
     @Override
     public void run() {
-        theLogger.log(Level.INFO, "LocationController run start.");
+        theLogger.log(Level.INFO, "Controller run start.");
         threadExecutor = Executors.newFixedThreadPool(thePoolSize);
         Constructor constructionWorker = new Constructor(this, theURL, theLogger);
         Future<String> constructorResult = threadExecutor.submit(constructionWorker);
@@ -98,18 +98,18 @@ public class Controller extends Thread {
                                 prevPctProgress = pctProgress;
                             }
                         } catch (ExecutionException ex) {
-                            theLogger.log(Level.SEVERE, "LocationController get results Execution exception on:" + j, ex);
+                            theLogger.log(Level.SEVERE, "Controller get results Execution exception on:" + j, ex);
                         } catch (NullPointerException npe) {
-                            theLogger.log(Level.SEVERE, "LocationController get results NullPointerExecution exception on:" + j, npe);
+                            theLogger.log(Level.SEVERE, "Controller get results NullPointerExecution exception on:" + j, npe);
                         }
                     }
                 }
             }
         } catch (Exception e) {
-            theLogger.log(Level.SEVERE, "LocationController run Interrupted exception", e);
+            theLogger.log(Level.SEVERE, "Controller run Interrupted exception", e);
         }
 
-        theLogger.log(Level.INFO, "LocationController has no work.");
+        theLogger.log(Level.INFO, "Controller has no work.");
         threadExecutor.shutdownNow();
         threadExecutor = null;
         manager.notifyComplete();

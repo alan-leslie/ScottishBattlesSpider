@@ -39,6 +39,8 @@ public class RefThree implements Comparable {
     private Date theStartDate;
     private Date theEndDate;
     private URL theURL;
+    private static PeriodMap thePeriodMap = new PeriodMap();
+    private static PositionMap thePositionMap = new PositionMap();
     private String theBaseURL = "http://en.wikipedia.org";
     private final Logger theLogger;
 
@@ -167,12 +169,25 @@ public class RefThree implements Comparable {
                 populateLocationFromSummaryData(summaryFromPage);
             }
         }
+        
+        // try to recover if data is only partially set
+        if((isPeriodSet() || isPositionSet()) && !(isPeriodSet() && isPositionSet())){
+            if(!isPeriodSet()){
+                theStartDate = thePeriodMap.getStartDate(getId());
+                theEndDate = thePeriodMap.getEndDate(getId());
+            }
+
+            if(!isPositionSet()){
+                theLatitude = thePositionMap.getLatitude(getId());
+                theLongitude = thePositionMap.getLongitude(getId());                  
+            }
+        }
 
         if (isComplete()) {
             return true;
         } else {
             theLogger.log(Level.WARNING, "Unable to complete {0}", getId());
-            return false;
+            return false;                
         }
     }
 
@@ -481,6 +496,7 @@ public class RefThree implements Comparable {
         List<DateFormat> theFormatters = new ArrayList<DateFormat>();
         theFormatters.add(new SimpleDateFormat("dd MMMM yyyy"));
         theFormatters.add(new SimpleDateFormat("MMMM dd, yyyy"));
+        theFormatters.add(new SimpleDateFormat("MMMM, yyyy"));
         theFormatters.add(new SimpleDateFormat("MMMM yyyy"));
         theFormatters.add(new SimpleDateFormat("yyyy"));
         theFormatters.add(new SimpleDateFormat("dd/MM/yyyy"));
@@ -502,6 +518,7 @@ public class RefThree implements Comparable {
         return retVal;
     }
 
+    // todo cut this into as few patterns as possible
     private Date getOccurenceDate(String paragraphText) {
         Date retVal = null;
         List<Pattern> theDatePatterns = new ArrayList<Pattern>();
@@ -517,6 +534,18 @@ public class RefThree implements Comparable {
         theDatePatterns.add(Pattern.compile(" \\d\\d October \\d\\d\\d\\d"));
         theDatePatterns.add(Pattern.compile(" \\d\\d November \\d\\d\\d\\d"));
         theDatePatterns.add(Pattern.compile(" \\d\\d December \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d January \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d February \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d March \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d April \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d May \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d June \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d July \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d August \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d Septempber \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d October \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d November \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d December \\d\\d\\d\\d"));
 
         for (int i = 0; i < theDatePatterns.size() && retVal == null; ++i) {
             Matcher theMatcher = theDatePatterns.get(i).matcher(paragraphText);

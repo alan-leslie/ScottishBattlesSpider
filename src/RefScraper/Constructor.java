@@ -13,10 +13,8 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -60,7 +58,7 @@ public class Constructor implements Callable<String> {
      * Constructs a worker.
      *
      * @param owner The owner of this object
-     * @param theTarget
+     * @param theTargets 
      * @param logger  
      */
     public Constructor(Controller owner,
@@ -101,7 +99,7 @@ public class Constructor implements Callable<String> {
     }
 
     /**
-     * Processes the html to produce location workers
+     * Processes the html to produce workers
      * This works for now but it would be more robust if region and table nodes
      * were matched up by looking at relative position of the nodes
      * @param document - valid parsed html document
@@ -151,8 +149,7 @@ public class Constructor implements Callable<String> {
             XPath linkXpath = XPathFactory.newInstance().newXPath();
             linkNodeList = (NodeList) linkXpath.evaluate(searchString, document, XPathConstants.NODESET);
             
-            int listLength = linkNodeList.getLength();
-            
+            int listLength = linkNodeList.getLength();           
         } catch (Exception e) {
             theLogger.log(Level.SEVERE, "Exception on XPath: ", e);
         }
