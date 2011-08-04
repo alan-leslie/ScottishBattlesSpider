@@ -24,6 +24,8 @@ import org.w3c.dom.NodeList;
  * The Constructor class is responsible for constructing the workloads.
  * So it connects to the initial page and looks for links of interest.
  *
+ * todo - change so that it tales a list of pages to work with
+ * need a list of hrefs processed (added to workload) also
  * @author al
  */
 public class Constructor implements Callable<String> {
@@ -73,6 +75,7 @@ public class Constructor implements Callable<String> {
      */
     public String call() {
         HTMLPageParser theParser = new HTMLPageParser(theLogger);
+        theLogger.log(Level.INFO, "Constructing fom page {0}", target);
         Document theDoc = theParser.getParsedPage(target);
         processFile(theDoc);
         return "Complete";

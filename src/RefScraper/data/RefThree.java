@@ -92,7 +92,8 @@ public class RefThree implements Comparable {
         ps.print(theStartDate.toString());
         ps.print("\" ");
 
-        if (theEndDate.after(theStartDate)) {
+        if (theEndDate != null
+                && theEndDate.after(theStartDate)) {
             ps.print("end=\"");
             ps.print(theEndDate.toString());
             ps.print("\" ");
@@ -153,7 +154,22 @@ public class RefThree implements Comparable {
         populateCoordsFromPage(theDocument);
         NodeList summaryFromPage = getSummaryFromPage(theDocument);
 
-        if (summaryFromPage != null) {
+        if (summaryFromPage == null) {
+            Node theFirstPara = getFirstParaFromPage(theDocument);
+
+            if (theFirstPara != null) {
+
+                // todo get text of first para (not italic not include embedded 
+                // anchors?) 
+                String testString = theFirstPara.getTextContent();
+                Date testDate = getOccurenceDate(testString);
+
+                if (testDate != null) {
+                    theStartDate = testDate;
+                    theEndDate = testDate;
+                }
+            }
+        } else {
             populateDateFromSummaryData(summaryFromPage);
 
             if (!isPositionSet()) {
@@ -195,6 +211,7 @@ public class RefThree implements Comparable {
 
     /*
      * Get the summary data from the page
+     * todo go straight to the summary and then go to parent
      *
      */
     private NodeList getSummaryFromPage(Document theDocument) {
@@ -221,6 +238,36 @@ public class RefThree implements Comparable {
         }
 
         return retVal;
+    }
+
+    /*
+     * Get the summary data from the page
+     * todo go straight to the summary and the go to parent
+     *
+     */
+    private Node getFirstParaFromPage(Document theDocument) {
+        Node retVal = null;
+
+        try {
+            XPath firstParaXpath = XPathFactory.newInstance().newXPath();
+            NodeList theData = (NodeList) firstParaXpath.evaluate("html/body//div[@id='bodyContent']/p", theDocument, XPathConstants.NODESET);
+            int listLength = theData.getLength();
+
+            if (listLength > 0) {
+                retVal = theData.item(0);
+            }
+        } catch (XPathExpressionException ex) {
+            theLogger.log(Level.SEVERE, null, ex);
+        }
+
+        return retVal;
+    }
+
+    /*
+     * Get the summary from the top left of the page
+     *
+     */
+    private void populateDateFromFirstPara(Node firstPara) {
     }
 
     /*
@@ -405,8 +452,8 @@ public class RefThree implements Comparable {
         Pattern thePattern = Pattern.compile("\\d\\d\\d\\d-\\d\\d\\d\\d");
         Matcher theMatcher = thePattern.matcher(dateString);
         boolean retVal = theMatcher.matches();
-        
-        if(retVal){
+
+        if (retVal) {
             Scanner s = new Scanner(dateString).useDelimiter("-");
             Integer theStartYear = new Integer(s.nextInt());
             Integer theEndYear = new Integer(s.nextInt());
@@ -447,6 +494,35 @@ public class RefThree implements Comparable {
 
         if (retVal == null) {
             theLogger.log(Level.WARNING, "Cannot get date");
+        }
+
+        return retVal;
+    }
+
+    private Date getOccurenceDate(String paragraphText) {
+        Date retVal = null;
+        List<Pattern> theDatePatterns = new ArrayList<Pattern>();
+        theDatePatterns.add(Pattern.compile(" \\d\\d January \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d February \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d March \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d April \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d May \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d June \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d July \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d August \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d Septempber \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d October \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d November \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d December \\d\\d\\d\\d"));
+
+        for (int i = 0; i < theDatePatterns.size() && retVal == null; ++i) {
+            Matcher theMatcher = theDatePatterns.get(i).matcher(paragraphText);
+            boolean matchFound = theMatcher.find();
+
+            if (matchFound) {
+                String matchingString = theMatcher.group();
+                retVal = getDate(matchingString);
+            }
         }
 
         return retVal;
