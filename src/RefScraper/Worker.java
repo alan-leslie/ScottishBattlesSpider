@@ -16,12 +16,12 @@ public class Worker implements Callable<RefThree> {
    /**
      * The controller which drives this worker.
      */
-    protected final Controller owner;
+    private final Controller owner;
     
     /**
      * The data used to find the location.
      */
-    protected final RefThree _placemark;
+    private final RefThree _placemark;
     
     private final Logger theLogger;
 

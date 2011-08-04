@@ -33,20 +33,27 @@ public class Constructor implements Callable<String> {
     /**
      * the URL that this worker uses to get data
      */
-    protected URL target;
+    private List<URL> target;
 
     /**
      * 
+     * @param index 
      * @return - the URL that this worker uses to get data
      */
-    public String getTarget() {
-        return target.toString();
+    public String getTarget(int index) {
+        String retVal = "";
+        
+        if(index < target.size()){
+            target.get(index).toString();
+        }
+        
+        return retVal;
     }
     
     /**
      * The controller which drives this worker.
      */
-    protected final Controller owner;
+    private final Controller owner;
     private final Logger theLogger;
 
     /**
@@ -57,12 +64,19 @@ public class Constructor implements Callable<String> {
      * @param logger  
      */
     public Constructor(Controller owner,
-            String theTarget,
+            String theTargets,
             Logger logger) {
         this.owner = owner;
+        target = new ArrayList<URL>();
 
         try {
-            this.target = new URL(theTarget);
+            String targetArr[] = theTargets.split(" ");
+             for (int i = 0; i < targetArr.length; ++i){
+                 String theTarget = targetArr[i];
+                 if(!theTarget.isEmpty()){
+                target.add(new URL(theTarget));
+                 }
+             }
         } catch (MalformedURLException ex) {
             this.target = null;
         }
@@ -75,9 +89,14 @@ public class Constructor implements Callable<String> {
      */
     public String call() {
         HTMLPageParser theParser = new HTMLPageParser(theLogger);
-        theLogger.log(Level.INFO, "Constructing fom page {0}", target);
-        Document theDoc = theParser.getParsedPage(target);
-        processFile(theDoc);
+        ArrayList<String> linksAdded = new ArrayList<String>();
+        
+        for(int i = 0; i < target.size(); ++i){
+            theLogger.log(Level.INFO, "Constructing fom page {0}", target.get(i));
+            Document theDoc = theParser.getParsedPage(target.get(i));
+            processFile(theDoc, linksAdded);
+        }
+        
         return "Complete";
     }
 
@@ -88,7 +107,8 @@ public class Constructor implements Callable<String> {
      * @param document - valid parsed html document
      * @return  
      */
-    private boolean processFile(Document document) {
+    private boolean processFile(Document document,
+            List<String> linksAdded) {
         NodeList theLinks = getLinks(document);   
         int linksLength = theLinks.getLength();
 
@@ -101,12 +121,14 @@ public class Constructor implements Callable<String> {
             String theTitle = theElement.getAttribute("title");
             String theHREF = theElement.getAttribute("href");
             String theText = theElement.getTextContent();
-            
-            theLogger.log(Level.INFO, "Construction worker - processinng link : {0}", theTitle);
- 
-            RefThree theRef = new RefThree(theTitle, theHREF, theLogger);
-            
-            owner.addWorkload(theRef);
+  
+            if(!linksAdded.contains(theHREF)){
+                theLogger.log(Level.INFO, "Construction worker - processinng link : {0}", theTitle);
+
+                RefThree theRef = new RefThree(theTitle, theHREF, theLogger);          
+                owner.addWorkload(theRef);
+                linksAdded.add(theHREF);
+            }
 
             if (owner.isHalted()) {
                 return false;
@@ -137,6 +159,4 @@ public class Constructor implements Callable<String> {
 
         return linkNodeList;
     }
-
-
 }

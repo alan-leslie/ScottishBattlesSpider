@@ -20,10 +20,10 @@ import java.util.logging.Logger;
 
 public class Controller extends Thread {
     private ExecutorService threadExecutor;
-    protected ITaskComplete manager;
-    protected boolean halted = false;
-    protected ArrayList<Future<RefThree>> theWorkers = new ArrayList<Future<RefThree>>();
-    protected int thePoolSize;
+    private ITaskComplete manager;
+    private boolean halted = false;
+    private ArrayList<Future<RefThree>> theWorkers = new ArrayList<Future<RefThree>>();
+    private int thePoolSize;
     private final Logger theLogger;
     private final RefThrees theRefs;
     private final String theURL;
