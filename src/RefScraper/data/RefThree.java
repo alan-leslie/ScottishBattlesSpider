@@ -530,7 +530,7 @@ public class RefThree implements Comparable {
         theDatePatterns.add(Pattern.compile(" \\d\\d June \\d\\d\\d\\d"));
         theDatePatterns.add(Pattern.compile(" \\d\\d July \\d\\d\\d\\d"));
         theDatePatterns.add(Pattern.compile(" \\d\\d August \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d Septempber \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d September \\d\\d\\d\\d"));
         theDatePatterns.add(Pattern.compile(" \\d\\d October \\d\\d\\d\\d"));
         theDatePatterns.add(Pattern.compile(" \\d\\d November \\d\\d\\d\\d"));
         theDatePatterns.add(Pattern.compile(" \\d\\d December \\d\\d\\d\\d"));
@@ -542,7 +542,7 @@ public class RefThree implements Comparable {
         theDatePatterns.add(Pattern.compile(" \\d June \\d\\d\\d\\d"));
         theDatePatterns.add(Pattern.compile(" \\d July \\d\\d\\d\\d"));
         theDatePatterns.add(Pattern.compile(" \\d August \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d Septempber \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d September \\d\\d\\d\\d"));
         theDatePatterns.add(Pattern.compile(" \\d October \\d\\d\\d\\d"));
         theDatePatterns.add(Pattern.compile(" \\d November \\d\\d\\d\\d"));
         theDatePatterns.add(Pattern.compile(" \\d December \\d\\d\\d\\d"));

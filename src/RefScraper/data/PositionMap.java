@@ -17,7 +17,7 @@ public class PositionMap {
 
     PositionMap() {
         theMap = new HashMap<String, Position>();
-        theMap.put("BattleofGlasgow(1553)", new Position("55°51′29″N", "4°15′32″W"));
+        theMap.put("BattleofGlasgow(1544)", new Position("55°51′29″N", "4°15′32″W"));
         theMap.put("BattleofGlasgow(1560)", new Position("55°51′29″N", "4°15′32″W"));
         theMap.put("BattleofCravant", new Position("47°41′02″N", "3°41′30″E"));
         theMap.put("BattleofFaughart", new Position("53°50′N", "6°30′W"));

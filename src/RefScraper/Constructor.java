@@ -111,7 +111,6 @@ public class Constructor implements Callable<String> {
         int linksLength = theLinks.getLength();
 
         for (int i = 0; i < linksLength; ++i) {
-            String linkName = "theLink";
             Node childNode = (Node) theLinks.item(i);
             short nodeType = childNode.getNodeType();
             
@@ -120,8 +119,11 @@ public class Constructor implements Callable<String> {
             String theHREF = theElement.getAttribute("href");
             String theText = theElement.getTextContent();
   
-            if(!linksAdded.contains(theHREF)){
-                theLogger.log(Level.INFO, "Construction worker - processinng link : {0}", theTitle);
+            if(!theTitle.isEmpty() && 
+                    !theTitle.contains("Special:") &&
+                    !theTitle.contains("Wikipedia:") &&
+                    !linksAdded.contains(theHREF)){
+                theLogger.log(Level.INFO, "Construction worker - processing link : {0}", theTitle);
 
                 RefThree theRef = new RefThree(theTitle, theHREF, theLogger);          
                 owner.addWorkload(theRef);
