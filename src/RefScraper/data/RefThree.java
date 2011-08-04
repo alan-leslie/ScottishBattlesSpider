@@ -244,8 +244,13 @@ public class RefThree implements Comparable {
             NodeList theData = (NodeList) firstParaXpath.evaluate("html/body//div[@id='bodyContent']/p", theDocument, XPathConstants.NODESET);
             int listLength = theData.getLength();
 
-            if (listLength > 0) {
-                retVal = theData.item(0);
+            for(int i = 0; i < listLength && retVal == null; ++i) {
+                XPath coordsXpath = XPathFactory.newInstance().newXPath();
+                Node theCoords = (Node) coordsXpath.evaluate(".//span[@id='coordinates']", theData.item(i), XPathConstants.NODE);
+                
+                if(theCoords == null){
+                    retVal = theData.item(i);
+                }
             }
         } catch (XPathExpressionException ex) {
             theLogger.log(Level.SEVERE, null, ex);
