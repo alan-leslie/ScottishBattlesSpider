@@ -158,16 +158,7 @@ public class RefThree implements Comparable {
             Node theFirstPara = getFirstParaFromPage(theDocument);
 
             if (theFirstPara != null) {
-
-                // todo get text of first para (not italic not include embedded 
-                // anchors?) 
-                String testString = theFirstPara.getTextContent();
-                Date testDate = getOccurenceDate(testString);
-
-                if (testDate != null) {
-                    theStartDate = testDate;
-                    theEndDate = testDate;
-                }
+                populateDateFromFirstPara(theFirstPara);
             }
         } else {
             populateDateFromSummaryData(summaryFromPage);
@@ -267,7 +258,14 @@ public class RefThree implements Comparable {
      * Get the summary from the top left of the page
      *
      */
-    private void populateDateFromFirstPara(Node firstPara) {
+    private void populateDateFromFirstPara(Node theFirstPara) {
+        String testString = theFirstPara.getTextContent();
+        Date testDate = getOccurenceDate(testString);
+
+        if (testDate != null) {
+            theStartDate = testDate;
+            theEndDate = testDate;
+        }
     }
 
     /*
