@@ -4,26 +4,71 @@
  */
 package RefScraper.data;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author al
  */
 public class PeriodMap {
+    private static PeriodMap thePeriodMap;
+    
+    public synchronized static PeriodMap getInstance(){
+        if(thePeriodMap == null){
+            thePeriodMap = new PeriodMap();
+        }
+        
+        return thePeriodMap;
+    }
+    
     private Map<String, Period> theMap;
 
-    PeriodMap() {
+    private PeriodMap() {
+        FileReader theReader = null;
         theMap = new HashMap<String, Period>();
-        theMap.put("BattleofDalnaspidal", new Period(new Date(19, 7, 1654), new Date(19, 7, 1654)));
-        theMap.put("BattleofMamGarvia", new Period(new Date(1, 6, 1187), new Date(1, 6, 1187)));
-        theMap.put("BattleofRenfrew", new Period(new Date(1, 6, 1164), new Date(1, 6, 1164)));
-        theMap.put("BattleofSlioch", new Period(new Date(1, 12, 1307), new Date(1, 12, 1307)));
-        theMap.put("BattleofStanhopePark", new Period(new Date(3, 8, 1327), new Date(4, 8, 1327)));
-        theMap.put("BattleofTeba", new Period(new Date(15, 8, 1330), new Date(15, 8, 1330)));
-        theMap.put("SiegeofStralsund(1628)", new Period(new Date(15, 5, 1628), new Date(4, 8, 1628)));
+
+        try {
+            theReader = new FileReader("KnownDates.txt");
+            BufferedReader in = new BufferedReader(theReader);
+            
+            String theLine = null;
+            DateFormat theDateFormatter = new SimpleDateFormat("dd/MM/yyyy");
+            
+            while ((theLine = in.readLine()) != null) {
+                String theLineArr[] = theLine.split(",");
+                
+                if(theLineArr.length > 2){
+                    try {
+                        Date newStartDate = theDateFormatter.parse(theLineArr[1]);
+                        Date newEndDate = theDateFormatter.parse(theLineArr[2]);
+                        theMap.put(theLineArr[0], new Period(newStartDate, newEndDate));
+                    } catch (ParseException ex) {
+                        Logger.getLogger(PeriodMap.class.getName()).log(Level.SEVERE, null, ex);
+                    }       
+                }
+            }
+
+        } catch (IOException e) {
+            // ...
+        } finally {
+            if (null != theReader) {
+                try {
+                    theReader.close();
+                } catch (IOException e) {
+                    /* .... */
+                }
+            }
+        }
     }
 
     synchronized Date getStartDate(String key) {

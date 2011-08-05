@@ -39,8 +39,6 @@ public class RefThree implements Comparable {
     private Date theStartDate;
     private Date theEndDate;
     private URL theURL;
-    private static PeriodMap thePeriodMap = new PeriodMap();
-    private static PositionMap thePositionMap = new PositionMap();
     private String theBaseURL = "http://en.wikipedia.org";
     private final Logger theLogger;
 
@@ -173,13 +171,13 @@ public class RefThree implements Comparable {
         // try to recover if data is only partially set
         if((isPeriodSet() || isPositionSet()) && !(isPeriodSet() && isPositionSet())){
             if(!isPeriodSet()){
-                theStartDate = thePeriodMap.getStartDate(getId());
-                theEndDate = thePeriodMap.getEndDate(getId());
+                theStartDate = PeriodMap.getInstance().getStartDate(getId());
+                theEndDate = PeriodMap.getInstance().getEndDate(getId());
             }
 
             if(!isPositionSet()){
-                theLatitude = thePositionMap.getLatitude(getId());
-                theLongitude = thePositionMap.getLongitude(getId());                  
+                theLatitude = PositionMap.getInstance().getLatitude(getId());
+                theLongitude = PositionMap.getInstance().getLongitude(getId());                  
             }
         }
 

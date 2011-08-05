@@ -4,6 +4,9 @@
  */
 package RefScraper.data;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,17 +15,47 @@ import java.util.Map;
  * @author al
  */
 public class PositionMap {
+    private static PositionMap thePositionMap;
+    
+    public synchronized static PositionMap getInstance(){
+        if(thePositionMap == null){
+            thePositionMap = new PositionMap();
+        }
+        
+        return thePositionMap;
+    }
 
     private Map<String, Position> theMap;
 
-    PositionMap() {
+    private PositionMap() {
+        FileReader theReader = null;
         theMap = new HashMap<String, Position>();
-        theMap.put("BattleofGlasgow(1544)", new Position("55°51′29″N", "4°15′32″W"));
-        theMap.put("BattleofGlasgow(1560)", new Position("55°51′29″N", "4°15′32″W"));
-        theMap.put("BattleofCravant", new Position("47°41′02″N", "3°41′30″E"));
-        theMap.put("BattleofFaughart", new Position("53°50′N", "6°30′W"));
-        theMap.put("BattleofLinlithgowBridge", new Position("55°58′45″N", "3°36′38″W"));
-        theMap.put("BattleofVerneuil", new Position("48°44′22″N", "0°55′43″E"));
+
+        try {
+            theReader = new FileReader("KnownPositions.txt");
+            BufferedReader in = new BufferedReader(theReader);
+            
+            String theLine = null;
+            
+            while ((theLine = in.readLine()) != null) {
+                String theLineArr[] = theLine.split(",");
+                
+                if(theLineArr.length > 2){
+                    theMap.put(theLineArr[0], new Position(theLineArr[1], theLineArr[2]));
+                }
+            }
+
+        } catch (IOException e) {
+            // ...
+        } finally {
+            if (null != theReader) {
+                try {
+                    theReader.close();
+                } catch (IOException e) {
+                    /* .... */
+                }
+            }
+        }
     }
 
     synchronized String getLongitude(String key) {
