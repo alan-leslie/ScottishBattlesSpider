@@ -40,6 +40,7 @@ public class RefThree implements Comparable {
     private Date theEndDate;
     private URL theURL;
     private String theBaseURL = "http://en.wikipedia.org";
+    private String theHREF;
     private final Logger theLogger;
 
     /**
@@ -51,6 +52,7 @@ public class RefThree implements Comparable {
     public RefThree(String theTitle,
             String theHREF,
             Logger logger) {
+        this.theHREF = theHREF;
         String thePageHREF = theHREF;
 
         if (thePageHREF.indexOf("http://") != 0) {
@@ -564,5 +566,9 @@ public class RefThree implements Comparable {
         }
         String anotherPlacemarkName = ((RefThree) anotherPlacemark).getId();
         return this.getId().compareTo(anotherPlacemarkName);
+    }
+
+    public String getHREF() {
+        return theHREF;
     }
 }
