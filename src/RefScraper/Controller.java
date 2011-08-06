@@ -154,6 +154,6 @@ public class Controller extends Thread {
      * @param outputDir 
      */
     public void outputResults(String outputDir) {
-        theRefs.outputAsKML(outputDir);
+        theRefs.outputAsXML(outputDir, true);
     }
 }

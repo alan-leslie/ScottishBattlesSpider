@@ -87,23 +87,38 @@ public class RefThree implements Comparable {
     /**
      * 
      * @param ps - the stream to where the data is written
+     * @param asKML  
      */
-    public void outputAsKML(PrintStream ps) {
-        ps.print("<event ");
-        ps.print("start=\"");
-        ps.print(theStartDate.toString());
-        ps.print("\" ");
+    public void outputAsXML(PrintStream ps,
+            boolean asKML) {
 
-        if (theEndDate != null
-                && theEndDate.after(theStartDate)) {
-            ps.print("end=\"");
-            ps.print(theEndDate.toString());
+        if (asKML) {
+            ps.print("<Placemark>");
+            ps.println();
+        } else {
+            ps.print("<event ");
+            ps.print("start=\"");
+            ps.print(theStartDate.toString());
             ps.print("\" ");
+
+            if (theEndDate != null
+                    && theEndDate.after(theStartDate)) {
+                ps.print("end=\"");
+                ps.print(theEndDate.toString());
+                ps.print("\" ");
+            }
+
+            ps.print("title=\"");
+            ps.print(theName);
+            ps.print("\">");
+            ps.println();
         }
 
-        ps.print("title=\"");
+        ps.print("<name>");
+        ps.println();
         ps.print(theName);
-        ps.print("\">");
+        ps.println();
+        ps.print("</name>");
         ps.println();
         ps.print("<description>");
         ps.println();
@@ -132,8 +147,14 @@ public class RefThree implements Comparable {
         ps.println();
         ps.print("</Point>");
         ps.println();
-        ps.print("</event>");
-        ps.println();
+
+        if (asKML) {
+            ps.print("</Placemark>");
+            ps.println();
+        } else {
+            ps.print("</event>");
+            ps.println();
+        }
     }
 
     /**
@@ -169,17 +190,17 @@ public class RefThree implements Comparable {
                 populateLocationFromSummaryData(summaryFromPage);
             }
         }
-        
+
         // try to recover if data is only partially set
-        if((isPeriodSet() || isPositionSet()) && !(isPeriodSet() && isPositionSet())){
-            if(!isPeriodSet()){
+        if ((isPeriodSet() || isPositionSet()) && !(isPeriodSet() && isPositionSet())) {
+            if (!isPeriodSet()) {
                 theStartDate = PeriodMap.getInstance().getStartDate(getId());
                 theEndDate = PeriodMap.getInstance().getEndDate(getId());
             }
 
-            if(!isPositionSet()){
+            if (!isPositionSet()) {
                 theLatitude = PositionMap.getInstance().getLatitude(getId());
-                theLongitude = PositionMap.getInstance().getLongitude(getId());                  
+                theLongitude = PositionMap.getInstance().getLongitude(getId());
             }
         }
 
@@ -187,7 +208,7 @@ public class RefThree implements Comparable {
             return true;
         } else {
             theLogger.log(Level.WARNING, "Unable to complete {0}", getId());
-            return false;                
+            return false;
         }
     }
 
@@ -259,11 +280,11 @@ public class RefThree implements Comparable {
             NodeList theData = (NodeList) firstParaXpath.evaluate("html/body//div[@id='bodyContent']/p", theDocument, XPathConstants.NODESET);
             int listLength = theData.getLength();
 
-            for(int i = 0; i < listLength && retVal == null; ++i) {
+            for (int i = 0; i < listLength && retVal == null; ++i) {
                 XPath coordsXpath = XPathFactory.newInstance().newXPath();
                 Node theCoords = (Node) coordsXpath.evaluate(".//span[@id='coordinates']", theData.item(i), XPathConstants.NODE);
-                
-                if(theCoords == null){
+
+                if (theCoords == null) {
                     retVal = theData.item(i);
                 }
             }
