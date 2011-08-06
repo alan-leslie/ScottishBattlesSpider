@@ -248,7 +248,7 @@ public class Constructor implements Callable<String> {
         NodeList linkNodeList = null;
 
         try {
-            String searchString = "/html//div[@id='bodyContent']/ul/li/a";
+            String searchString = "/html//div[@id='bodyContent']//ul/li/a";
             XPath linkXpath = XPathFactory.newInstance().newXPath();
             linkNodeList = (NodeList) linkXpath.evaluate(searchString, document, XPathConstants.NODESET);
             
