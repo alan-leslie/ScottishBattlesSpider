@@ -1,5 +1,7 @@
 package RefScraper;
 
+import RefScraper.data.HTMLLink;
+import RefScraper.data.WikipediaPage;
 import RefScraper.data.RefThree;
 import java.net.MalformedURLException;
 import java.net.URL;

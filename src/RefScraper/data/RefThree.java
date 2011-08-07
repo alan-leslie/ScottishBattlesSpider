@@ -1,6 +1,5 @@
 package RefScraper.data;
 
-import RefScraper.WikipediaPage;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;

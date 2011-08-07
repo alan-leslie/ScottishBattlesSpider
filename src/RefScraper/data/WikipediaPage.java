@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package RefScraper;
+package RefScraper.data;
 
+import RefScraper.data.HTMLPageParser;
 import RefScraper.data.Period;
 import RefScraper.data.Position;
 import java.net.MalformedURLException;

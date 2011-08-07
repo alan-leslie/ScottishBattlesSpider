@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package RefScraper;
+package RefScraper.data;
 
 /**
  *
@@ -14,7 +14,7 @@ public class HTMLLink {
     private static String theBaseURL = "http://en.wikipedia.org";
 
     
-    public HTMLLink(String text, 
+    HTMLLink(String text, 
             String href)
     {
         theText = text;

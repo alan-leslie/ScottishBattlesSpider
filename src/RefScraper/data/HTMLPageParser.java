@@ -1,4 +1,4 @@
-package RefScraper;
+package RefScraper.data;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,11 +29,11 @@ public class HTMLPageParser {
 
     private final Logger theLogger;
 
-    public HTMLPageParser(Logger logger) {
+    HTMLPageParser(Logger logger) {
         theLogger = logger;
     }
 
-    public Document getParsedPage(URL theURL) {
+    Document getParsedPage(URL theURL) {
         Document theResult = null;
 
         if (theURL == null) {
