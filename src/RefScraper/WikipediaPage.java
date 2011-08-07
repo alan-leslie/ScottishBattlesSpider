@@ -4,10 +4,17 @@
  */
 package RefScraper;
 
+import RefScraper.data.Period;
+import RefScraper.data.Position;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -240,5 +247,227 @@ public class WikipediaPage {
         } catch (Exception e) {
             theLogger.log(Level.SEVERE, "Exception on XPath: ", e);
         }
+    }
+    
+        /*
+     * Get the position from the coordinates field on the top left of the page
+     *
+     */
+    public Position getPageCoords() {
+        Position thePosition = null;
+        
+        try {
+            XPath latitudeXpath = XPathFactory.newInstance().newXPath();
+            Node theLatitudeNode = (Node) latitudeXpath.evaluate("html/body//span[@class='latitude']", theDocument, XPathConstants.NODE);
+
+
+            XPath longitudeXpath = XPathFactory.newInstance().newXPath();
+            Node theLongitudeNode = (Node) longitudeXpath.evaluate("html/body//span[@class='longitude']", theDocument, XPathConstants.NODE);
+
+            if (theLongitudeNode != null && theLatitudeNode != null) {
+                thePosition = new Position(theLatitudeNode.getTextContent(), theLongitudeNode.getTextContent());
+            }
+
+        } catch (XPathExpressionException ex) {
+            theLogger.log(Level.SEVERE, null, ex);
+        }
+        
+        return thePosition;
+    }
+    
+    /*
+     * populate the position from the summary data
+     * either use the summary ref or the summary place
+     *
+     */
+    public Position getLocationFromSummary(NodeList summaryData) {
+        int theLength = summaryData.getLength();
+        boolean locationFound = false;
+        Position summaryPosition = null;
+
+        try {
+            for (int i = 0; i < theLength && !locationFound; ++i) {
+                XPath rowXpath = XPathFactory.newInstance().newXPath();
+                NodeList theRows = (NodeList) rowXpath.evaluate("./td/table/tr", summaryData.item(i), XPathConstants.NODESET);
+
+                if (theRows != null) {
+                    int theRowsLength = theRows.getLength();
+
+                    for (int j = 0; j < theRowsLength; ++j) {
+                        Node theRowNode = theRows.item(j);
+
+                        XPath headerXpath = XPathFactory.newInstance().newXPath();
+                        Node theHeaderNode = (Node) rowXpath.evaluate("./th", theRowNode, XPathConstants.NODE);
+
+                        String theText = theHeaderNode.getTextContent();
+
+                        if (theText != null
+                                && theText.equalsIgnoreCase("Location")) {
+                            XPath detailXpath = XPathFactory.newInstance().newXPath();
+                            Node theDetail = (Node) headerXpath.evaluate("./td", theRowNode, XPathConstants.NODE);
+
+                            if (theDetail != null) {
+                                XPath anchorsXpath = XPathFactory.newInstance().newXPath();
+                                NodeList theAnchors = (NodeList) headerXpath.evaluate("./span/a", theDetail, XPathConstants.NODESET);
+
+                                if (theAnchors != null) {
+                                    int theAnchorsLength = theAnchors.getLength();
+
+                                    if (theAnchorsLength > 0) {
+                                        Element thePlaceElement = (Element) theAnchors.item(0);
+                                        String thePlaceHREF = thePlaceElement.getAttribute("href");
+                                        if (thePlaceHREF.indexOf("http://") != 0) {
+                                            thePlaceHREF = WikipediaPage.getBaseURL() + thePlaceHREF;
+                                        }
+
+                                        try {
+                                            URL theLocationRef = new URL(thePlaceHREF);
+                                            summaryPosition = getLocationFromRef(theLocationRef);
+                                        } catch (MalformedURLException ex) {
+                                            theLogger.log(Level.SEVERE, "Unable to format place URL", ex);
+                                        }
+                                    }
+                                }
+                            }
+
+                            locationFound = true;
+                        }
+                    }
+                }
+            }
+        } catch (XPathExpressionException ex) {
+            theLogger.log(Level.SEVERE, null, ex);
+        }
+        
+        return summaryPosition;
+    }
+
+    /**
+     * Try and get the latitude and longitude from either the place url
+     * @return
+     */
+    private Position getLocationFromRef(URL locationRef) {
+        HTMLPageParser theParser = new HTMLPageParser(theLogger);
+        Document document = theParser.getParsedPage(locationRef);
+        WikipediaPage thePage = new WikipediaPage(document, theLogger);
+        Position refPosition = thePage.getPageCoords();
+
+        return refPosition;
+    }
+    
+        /*
+     * Get the summary from the top left of the page
+     *
+     */
+    public Period getDateFromSummary(NodeList summaryData) {
+        Period summaryPeriod = null;
+        
+        try {
+            int theLength = summaryData.getLength();
+            boolean dateFound = false;
+
+            for (int i = 0; i < theLength && !dateFound; ++i) {
+                XPath rowXpath = XPathFactory.newInstance().newXPath();
+                NodeList theRows = (NodeList) rowXpath.evaluate("./td/table/tr", summaryData.item(i), XPathConstants.NODESET);
+
+                if (theRows != null) {
+                    int theRowsLength = theRows.getLength();
+
+                    for (int j = 0; j < theRowsLength; ++j) {
+                        Node theRowNode = theRows.item(j);
+
+                        XPath headerXpath = XPathFactory.newInstance().newXPath();
+                        Node theHeaderNode = (Node) rowXpath.evaluate("./th", theRowNode, XPathConstants.NODE);
+
+                        String theText = theHeaderNode.getTextContent();
+
+                        if (theText != null
+                                && theText.equalsIgnoreCase("Date")) {
+                            XPath detailXpath = XPathFactory.newInstance().newXPath();
+                            Node theDetail = (Node) headerXpath.evaluate("./td", theRowNode, XPathConstants.NODE);
+
+                            if (theDetail != null) {
+                                String detailText = theDetail.getTextContent();
+
+                                summaryPeriod = Period.getRealPeriod(detailText);
+
+                                if (summaryPeriod == null) {
+                                    Date theDate = Period.getDate(detailText);
+
+                                    if (theDate != null) {
+                                        summaryPeriod = new Period(theDate, theDate);
+                                    } else {
+                                        theLogger.log(Level.WARNING, "Cannot get date");
+                                    }
+                                }
+                            }
+
+                            dateFound = true;
+                        }
+                    }
+                }
+            }
+        } catch (XPathExpressionException ex) {
+            theLogger.log(Level.SEVERE, null, ex);
+        }
+        
+        return summaryPeriod; 
+    } 
+    
+       /*
+     * Get the summary from the top left of the page
+     *
+     */
+    public Period getDateFromFirstPara(Node theFirstPara) {
+        String testString = theFirstPara.getTextContent();
+        Date testDate = getOccurenceDate(testString);
+
+        if (testDate != null) {
+            return new Period(testDate, testDate);
+        } else {
+            return null;
+        }
+    }
+    
+        // todo cut this into as few patterns as possible
+    private Date getOccurenceDate(String paragraphText) {
+        Date retVal = null;
+        List<Pattern> theDatePatterns = new ArrayList<Pattern>();
+        theDatePatterns.add(Pattern.compile(" \\d\\d January \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d February \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d March \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d April \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d May \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d June \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d July \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d August \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d September \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d October \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d November \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d\\d December \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d January \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d February \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d March \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d April \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d May \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d June \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d July \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d August \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d September \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d October \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d November \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile(" \\d December \\d\\d\\d\\d"));
+
+        for (int i = 0; i < theDatePatterns.size() && retVal == null; ++i) {
+            Matcher theMatcher = theDatePatterns.get(i).matcher(paragraphText);
+            boolean matchFound = theMatcher.find();
+
+            if (matchFound) {
+                String matchingString = theMatcher.group();
+                retVal = Period.getDate(matchingString);
+            }
+        }
+
+        return retVal;
     }
 }
