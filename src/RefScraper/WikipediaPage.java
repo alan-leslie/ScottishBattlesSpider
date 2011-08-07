@@ -22,13 +22,19 @@ import org.w3c.dom.NodeList;
  * @author al
  */
 public class WikipediaPage {
+
     private final Document theDocument;
     private final Logger theLogger;
-    
+    private static String theBaseURL = "http://en.wikipedia.org";
+   
     public WikipediaPage(Document document,
             Logger logger){
         theDocument = document;     
         theLogger = logger;
+    }
+    
+    public static String getBaseURL() {
+        return theBaseURL;
     }
     
    /*

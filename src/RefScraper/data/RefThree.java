@@ -41,7 +41,6 @@ public class RefThree implements Comparable {
     private Date theEndDate;
     private URL theURL;
     private String theHREF;
-    private static String theBaseURL = "http://en.wikipedia.org";
     private final Logger theLogger;
 
     /**
@@ -346,7 +345,7 @@ public class RefThree implements Comparable {
                                         Element thePlaceElement = (Element) theAnchors.item(0);
                                         String thePlaceHREF = thePlaceElement.getAttribute("href");
                                         if (thePlaceHREF.indexOf("http://") != 0) {
-                                            thePlaceHREF = theBaseURL + thePlaceHREF;
+                                            thePlaceHREF = WikipediaPage.getBaseURL() + thePlaceHREF;
                                         }
 
                                         try {
