@@ -90,6 +90,8 @@ public class RefThrees {
 
             if (asKML) {
                 ps.print("</Document>");
+                ps.println();
+                ps.print("</kml>");
             } else {
                 ps.print("</data>");
             }

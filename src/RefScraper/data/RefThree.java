@@ -1,6 +1,7 @@
 package RefScraper.data;
 
 import RefScraper.HTMLPageParser;
+import RefScraper.WikipediaPage;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -39,8 +40,8 @@ public class RefThree implements Comparable {
     private Date theStartDate;
     private Date theEndDate;
     private URL theURL;
-    private String theBaseURL = "http://en.wikipedia.org";
     private String theHREF;
+    private static String theBaseURL = "http://en.wikipedia.org";
     private final Logger theLogger;
 
     /**
@@ -54,10 +55,6 @@ public class RefThree implements Comparable {
             Logger logger) {
         this.theHREF = theHREF;
         String thePageHREF = theHREF;
-
-        if (thePageHREF.indexOf("http://") != 0) {
-            thePageHREF = theBaseURL + thePageHREF;
-        }
 
         try {
             theURL = new URL(thePageHREF);
@@ -173,12 +170,13 @@ public class RefThree implements Comparable {
     public boolean complete() {
         HTMLPageParser theParser = new HTMLPageParser(theLogger);
         Document theDocument = theParser.getParsedPage(theURL);
+        WikipediaPage thePage = new WikipediaPage(theDocument, theLogger);
 
         populateCoordsFromPage(theDocument);
-        NodeList summaryFromPage = getSummaryFromPage(theDocument);
+        NodeList summaryFromPage = thePage.getSummary();
 
         if (summaryFromPage == null) {
-            Node theFirstPara = getFirstParaFromPage(theDocument);
+            Node theFirstPara = thePage.getFirstPara();
 
             if (theFirstPara != null) {
                 populateDateFromFirstPara(theFirstPara);
@@ -205,6 +203,9 @@ public class RefThree implements Comparable {
         }
 
         if (isComplete()) {
+            theLongitude = convertDMSToDecimal(theLongitude);
+            theLatitude = convertDMSToDecimal(theLatitude);
+
             return true;
         } else {
             theLogger.log(Level.WARNING, "Unable to complete {0}", getId());
@@ -234,65 +235,6 @@ public class RefThree implements Comparable {
         } catch (XPathExpressionException ex) {
             theLogger.log(Level.SEVERE, null, ex);
         }
-    }
-
-    /*
-     * Get the summary data from the page
-     * todo go straight to the summary and then go to parent
-     *
-     */
-    private NodeList getSummaryFromPage(Document theDocument) {
-        NodeList retVal = null;
-
-        try {
-            XPath infoboxTableXpath = XPathFactory.newInstance().newXPath();
-            NodeList theData = (NodeList) infoboxTableXpath.evaluate("html//table[@class='infobox vevent']/tr", theDocument, XPathConstants.NODESET);
-            int theLength = theData.getLength();
-
-            for (int i = 0; i < theLength && retVal == null; ++i) {
-                XPath summaryXpath = XPathFactory.newInstance().newXPath();
-                NodeList theSummary = (NodeList) summaryXpath.evaluate("./th[@class='summary']", theData.item(i), XPathConstants.NODESET);
-
-                if (theSummary != null
-                        && theSummary.getLength() > 0) {
-                    String theText = theSummary.item(0).getTextContent();
-                    retVal = theData;
-                }
-
-            }
-        } catch (XPathExpressionException ex) {
-            theLogger.log(Level.SEVERE, null, ex);
-        }
-
-        return retVal;
-    }
-
-    /*
-     * Get the summary data from the page
-     * todo go straight to the summary and the go to parent
-     *
-     */
-    private Node getFirstParaFromPage(Document theDocument) {
-        Node retVal = null;
-
-        try {
-            XPath firstParaXpath = XPathFactory.newInstance().newXPath();
-            NodeList theData = (NodeList) firstParaXpath.evaluate("html/body//div[@id='bodyContent']/p", theDocument, XPathConstants.NODESET);
-            int listLength = theData.getLength();
-
-            for (int i = 0; i < listLength && retVal == null; ++i) {
-                XPath coordsXpath = XPathFactory.newInstance().newXPath();
-                Node theCoords = (Node) coordsXpath.evaluate(".//span[@id='coordinates']", theData.item(i), XPathConstants.NODE);
-
-                if (theCoords == null) {
-                    retVal = theData.item(i);
-                }
-            }
-        } catch (XPathExpressionException ex) {
-            theLogger.log(Level.SEVERE, null, ex);
-        }
-
-        return retVal;
     }
 
     /*
@@ -591,5 +533,45 @@ public class RefThree implements Comparable {
 
     public String getHREF() {
         return theHREF;
+    }
+
+    public String convertDMSToDecimal(String dmsString) {
+        String retVal = "";
+        List<Double> dmsList = new ArrayList<Double>();
+        boolean isNegative = dmsString.contains("S") || dmsString.contains("W");
+        String tmpString = "";
+
+        for (int i = 0; i < dmsString.length(); ++i) {
+            if (Character.isDigit(dmsString.charAt(i))) {
+                tmpString = tmpString + dmsString.charAt(i);
+            } else {
+                if (!tmpString.isEmpty()) {
+                    dmsList.add(new Double(Double.parseDouble(tmpString)));
+                    tmpString = "";
+                }
+            }
+        }
+
+        Double decimalDeg = 0.0;
+
+        if (dmsList.size() > 0) {
+            decimalDeg += dmsList.get(0);
+        }
+
+        if (dmsList.size() > 1) {
+            decimalDeg += dmsList.get(1) / 60.0;
+        }
+
+        if (dmsList.size() > 2) {
+            decimalDeg += dmsList.get(2) / 3600.0;
+        }
+
+        retVal = decimalDeg.toString();
+
+        if (isNegative) {
+            retVal = "-" + retVal;
+        }
+
+        return retVal;
     }
 }

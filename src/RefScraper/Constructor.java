@@ -8,15 +8,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.transform.TransformerException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * The Constructor class is responsible for constructing the workloads.
@@ -91,7 +83,8 @@ public class Constructor implements Callable<String> {
         for (int i = 0; i < target.size(); ++i) {
             theLogger.log(Level.INFO, "Constructing fom page {0}", target.get(i));
             Document theDoc = theParser.getParsedPage(target.get(i));
-            processFile(theDoc, linksAdded);
+            WikipediaPage thePage = new WikipediaPage(theDoc, theLogger);
+            processFile(thePage, linksAdded);
             theLogger.log(Level.INFO, "Constructing fom page {0} - complete", target.get(i));
         }
 
@@ -105,18 +98,19 @@ public class Constructor implements Callable<String> {
      * @param document - valid parsed html document
      * @return  
      */
-    private boolean processFile(Document document,
+    private boolean processFile(WikipediaPage thePage,
             List<String> linksAdded) {
-        List<RefThree> theCandidates = getCandidates(document);
+        List<HTMLLink> theCandidates = thePage.getCandidates();
         int linksLength = theCandidates.size();
 
         for (int i = 0; i < linksLength; ++i) {
-            RefThree theRef = theCandidates.get(i);
+            HTMLLink theRef = theCandidates.get(i);
 
             if (!linksAdded.contains(theRef.getHREF())) {
-                theLogger.log(Level.INFO, "Construction worker - processing link : {0}", theRef.getId());
+                RefThree theWorkloadItem = new RefThree(theRef.getText(), theRef.getHREF(), theLogger);
+                theLogger.log(Level.INFO, "Construction worker - processing link : {0}", theRef.getText());
 
-                owner.addWorkload(theRef);
+                owner.addWorkload(theWorkloadItem);
                 linksAdded.add(theRef.getHREF());
             }
 
@@ -126,154 +120,5 @@ public class Constructor implements Callable<String> {
         }
 
         return true;
-    }
-
-    private List<RefThree> getCandidates(Document document) {
-        List<RefThree> theCandidates = new ArrayList<RefThree>();
-        getMainTableCandidates(document, theCandidates);
-        getMainListCandidates(document, theCandidates);
-        getSubTableCandidates(document, theCandidates);
-
-        return theCandidates;
-    }
-
-    /**
-     * Finds the region names by looking up the table class (wikitable_sortable).
-     * @param document - valid parsed html document
-     * @return - the list of tables as a node list 
-     */
-    private void getSubTableCandidates(Document document,
-            List<RefThree> theCandidates) {
-        NodeList linkNodeList = null;
-
-        try {
-            String searchString = "/html//table[@class='wikitable']/tr";
-            XPath linkXpath = XPathFactory.newInstance().newXPath();
-            linkNodeList = (NodeList) linkXpath.evaluate(searchString, document, XPathConstants.NODESET);
-
-            int listLength = linkNodeList.getLength();
-            int nameIndex = 0;
-
-            for (int i = 0; i < listLength; ++i) {
-                if (i == 0) {
-                    String headerSearchString = "./th";
-                    XPath headerXpath = XPathFactory.newInstance().newXPath();
-                    NodeList headerNodeList = (NodeList) headerXpath.evaluate(headerSearchString, linkNodeList.item(i), XPathConstants.NODESET);
-                    int headerLength = headerNodeList.getLength();
-
-                    for (int j = 0; j < headerNodeList.getLength(); ++j) {
-                        String headerText = headerNodeList.item(j).getTextContent();
-
-                        if (headerText.equalsIgnoreCase("Name")) {
-                            nameIndex = j;
-                        }
-                    }
-                } else {
-                    String detailSearchString = "./td";
-                    XPath detailXpath = XPathFactory.newInstance().newXPath();
-                    NodeList detailNodeList = (NodeList) detailXpath.evaluate(detailSearchString, linkNodeList.item(i), XPathConstants.NODESET);
-                    int detailLength = detailNodeList.getLength();
-
-                    if (detailNodeList.getLength() > nameIndex) {
-                        Node childNode = (Node) detailNodeList.item(nameIndex);
-                        String anchorSearchString = "./a";
-                        XPath anchorXpath = XPathFactory.newInstance().newXPath();
-                        Node anchorNode = (Node) anchorXpath.evaluate(anchorSearchString, childNode, XPathConstants.NODE);
-                        short nodeType = childNode.getNodeType();
-
-                        Element theElement = (Element) anchorNode;
-                        String theTitle = theElement.getAttribute("title");
-                        String theHREF = theElement.getAttribute("href");
-                        String theText = theElement.getTextContent();
-
-                        if (!theTitle.isEmpty()
-                                && !theTitle.contains("Special:")
-                                && !theTitle.contains("Wikipedia:")) {
-                            theLogger.log(Level.INFO, "Foudn candidate :{0}", theText);
-                            RefThree theCandidate = new RefThree(theText, theHREF, theLogger);
-                            theCandidates.add(theCandidate);
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            theLogger.log(Level.SEVERE, "Exception on XPath: ", e);
-        }
-    }
-
-    /**
-     * Finds the region names by looking up the table class (wikitable_sortable).
-     * @param document - valid parsed html document
-     * @return - the list of tables as a node list 
-     */
-    private void getMainTableCandidates(Document document,
-            List<RefThree> theCandidates) {
-        NodeList linkNodeList = null;
-
-        try {
-            String searchString = "/html//div[@id='mw-pages']/table//ul/li/a";
-            XPath linkXpath = XPathFactory.newInstance().newXPath();
-            linkNodeList = (NodeList) linkXpath.evaluate(searchString, document, XPathConstants.NODESET);
-
-            int listLength = linkNodeList.getLength();
-
-            for (int i = 0; i < listLength; ++i) {
-                Node childNode = (Node) linkNodeList.item(i);
-                short nodeType = childNode.getNodeType();
-
-                Element theElement = (Element) childNode;
-                String theTitle = theElement.getAttribute("title");
-                String theHREF = theElement.getAttribute("href");
-                String theText = theElement.getTextContent();
-
-                if (!theTitle.isEmpty()
-                        && !theTitle.contains("Special:")
-                        && !theTitle.contains("Wikipedia:")) {
-                    theLogger.log(Level.INFO, "Foudn candidate :{0}", theText);
-                    RefThree theCandidate = new RefThree(theText, theHREF, theLogger);
-                    theCandidates.add(theCandidate);
-                }
-            }
-        } catch (Exception e) {
-            theLogger.log(Level.SEVERE, "Exception on XPath: ", e);
-        }
-    }
-
-    /**
-     * Finds the region names by looking up the table class (wikitable_sortable).
-     * @param document - valid parsed html document
-     * @return - the list of tables as a node list 
-     */
-    private void getMainListCandidates(Document document,
-            List<RefThree> theCandidates) {
-        NodeList linkNodeList = null;
-
-        try {
-            String searchString = "/html//div[@id='bodyContent']/ul/li/a";
-            XPath linkXpath = XPathFactory.newInstance().newXPath();
-            linkNodeList = (NodeList) linkXpath.evaluate(searchString, document, XPathConstants.NODESET);
-
-            int listLength = linkNodeList.getLength();
-
-            for (int i = 0; i < listLength; ++i) {
-                Node childNode = (Node) linkNodeList.item(i);
-                short nodeType = childNode.getNodeType();
-
-                Element theElement = (Element) childNode;
-                String theTitle = theElement.getAttribute("title");
-                String theHREF = theElement.getAttribute("href");
-                String theText = theElement.getTextContent();
-
-                if (!theTitle.isEmpty()
-                        && !theTitle.contains("Special:")
-                        && !theTitle.contains("Wikipedia:")) {
-                    theLogger.log(Level.INFO, "Foudn candidate :{0}", theText);
-                    RefThree theCandidate = new RefThree(theText, theHREF, theLogger);
-                    theCandidates.add(theCandidate);
-                }
-            }
-        } catch (Exception e) {
-            theLogger.log(Level.SEVERE, "Exception on XPath: ", e);
-        }
     }
 }
