@@ -13,8 +13,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -25,31 +23,108 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- *
+ * Model of wikipedia page
  * @author al
  */
 public class WikipediaPage {
 
+    private final URL theURL;
     private final Document theDocument;
     private final Logger theLogger;
+    private NodeList theSummary = null;
+    private Node theFirstPara = null;
     private static String theBaseURL = "http://en.wikipedia.org";
-   
-    public WikipediaPage(Document document,
-            Logger logger){
-        theDocument = document;     
+
+    /**
+     * Constructs model of wikipedia page.
+     * @param newURL 
+     * @param logger  
+     */
+    public WikipediaPage(URL newURL,
+            Logger logger) {
+        theURL = newURL;
         theLogger = logger;
+        HTMLPageParser theParser = new HTMLPageParser(theLogger);
+        theDocument = theParser.getParsedPage(theURL);
     }
-    
+
+    /**
+     * Finds the period from the page.
+     * @return -valid period or null if unobtainable
+     */
     public static String getBaseURL() {
         return theBaseURL;
     }
-    
-   /*
+
+    /**
+     * Finds the period from the page.
+     * @return -valid period or null if unobtainable
+     */
+    public URL getURL() {
+        return theURL;
+    }
+
+    /**
+     * Finds the period from the page.
+     * @return -valid period or null if unobtainable
+     */
+    public Position getPosition() {
+        Position thePosition = getPageCoords();
+
+        if (thePosition == null) {
+            if (theSummary == null) {
+                theSummary = getSummary();
+            }
+
+            thePosition = getLocationFromSummary(theSummary);
+        }
+
+        return thePosition;
+    }
+
+    /**
+     * Finds the period from the page.
+     * @return -valid period or null if unobtainable
+     */
+    public Period getPeriod() {
+        Period thePeriod = null;
+
+        if (theFirstPara == null) {
+            theFirstPara = getFirstPara();
+
+            thePeriod = getDateFromFirstPara(theFirstPara);
+
+            if (thePeriod == null) {
+                if (theSummary == null) {
+                    theSummary = getSummary();
+                }
+
+                thePeriod = getDateFromSummary(theSummary);
+            }
+        }
+
+        return thePeriod;
+    }
+
+    /**
+     * Finds candidate links by looking various sections of the page.
+     * @return - the candidate links
+     */
+    public List<HTMLLink> getCandidates() {
+        List<HTMLLink> theCandidates = new ArrayList<HTMLLink>();
+        getMainTableCandidates(theCandidates);
+        getMainListCandidates(theCandidates);
+        getSubTableCandidates(theCandidates);
+
+        return theCandidates;
+    }
+
+    /*
      * Get the summary data from the page
-     * todo go straight to the summary and then go to parent
+     * @return - node list representing the summary section
      *
      */
-    public NodeList getSummary() {
+    private NodeList getSummary() {
         NodeList retVal = null;
 
         try {
@@ -59,11 +134,11 @@ public class WikipediaPage {
 
             for (int i = 0; i < theLength && retVal == null; ++i) {
                 XPath summaryXpath = XPathFactory.newInstance().newXPath();
-                NodeList theSummary = (NodeList) summaryXpath.evaluate("./th[@class='summary']", theData.item(i), XPathConstants.NODESET);
+                NodeList theSummaryHeader = (NodeList) summaryXpath.evaluate("./th[@class='summary']", theData.item(i), XPathConstants.NODESET);
 
-                if (theSummary != null
-                        && theSummary.getLength() > 0) {
-                    String theText = theSummary.item(0).getTextContent();
+                if (theSummaryHeader != null
+                        && theSummaryHeader.getLength() > 0) {
+                    String theText = theSummaryHeader.item(0).getTextContent();
                     retVal = theData;
                 }
 
@@ -76,11 +151,11 @@ public class WikipediaPage {
     }
 
     /*
-     * Get the summary data from the page
-     * todo go straight to the summary and the go to parent
+     * Get the first paragraph (usually an abstract of the page).
+     * @return node representation of first para
      *
      */
-    public Node getFirstPara() {
+    private Node getFirstPara() {
         Node retVal = null;
 
         try {
@@ -101,21 +176,12 @@ public class WikipediaPage {
         }
 
         return retVal;
-    }  
-    
-    public List<HTMLLink> getCandidates() {
-        List<HTMLLink> theCandidates = new ArrayList<HTMLLink>();
-        getMainTableCandidates(theCandidates);
-        getMainListCandidates(theCandidates);
-        getSubTableCandidates(theCandidates);
-
-        return theCandidates;
     }
 
     /**
-     * Finds the region names by looking up the table class (wikitable_sortable).
-     * @param document - valid parsed html document
-     * @return - the list of tables as a node list 
+     * Finds candidate links by looking up links titled with 'Name' in page 
+     * sub tables.
+     * @param theCandidates - the links to populate
      */
     private void getSubTableCandidates(List<HTMLLink> theCandidates) {
         NodeList linkNodeList = null;
@@ -176,9 +242,8 @@ public class WikipediaPage {
     }
 
     /**
-     * Finds the region names by looking up the table class (wikitable_sortable).
-     * @param document - valid parsed html document
-     * @return - the list of tables as a node list 
+     * Finds candidate links by looking up top level table links in the page
+     * @param theCandidates - the links to populate
      */
     private void getMainTableCandidates(List<HTMLLink> theCandidates) {
         NodeList linkNodeList = null;
@@ -213,9 +278,8 @@ public class WikipediaPage {
     }
 
     /**
-     * Finds the region names by looking up the table class (wikitable_sortable).
-     * @param document - valid parsed html document
-     * @return - the list of tables as a node list 
+     * Finds candidate links by looking up top level links in the page
+     * @param theCandidates - the links to populate
      */
     private void getMainListCandidates(List<HTMLLink> theCandidates) {
         NodeList linkNodeList = null;
@@ -248,14 +312,15 @@ public class WikipediaPage {
             theLogger.log(Level.SEVERE, "Exception on XPath: ", e);
         }
     }
-    
-        /*
+
+    /*
      * Get the position from the coordinates field on the top left of the page
+     * @return - valid position or null if unobtainable
      *
      */
-    public Position getPageCoords() {
+    private Position getPageCoords() {
         Position thePosition = null;
-        
+
         try {
             XPath latitudeXpath = XPathFactory.newInstance().newXPath();
             Node theLatitudeNode = (Node) latitudeXpath.evaluate("html/body//span[@class='latitude']", theDocument, XPathConstants.NODE);
@@ -271,16 +336,16 @@ public class WikipediaPage {
         } catch (XPathExpressionException ex) {
             theLogger.log(Level.SEVERE, null, ex);
         }
-        
+
         return thePosition;
     }
-    
-    /*
-     * populate the position from the summary data
-     * either use the summary ref or the summary place
-     *
+
+    /**
+     * Try and get the position from the summary of the page
+     * @param tsummaryData 
+     * @return - valid position or null if not obtainable
      */
-    public Position getLocationFromSummary(NodeList summaryData) {
+    private Position getLocationFromSummary(NodeList summaryData) {
         int theLength = summaryData.getLength();
         boolean locationFound = false;
         Position summaryPosition = null;
@@ -338,30 +403,29 @@ public class WikipediaPage {
         } catch (XPathExpressionException ex) {
             theLogger.log(Level.SEVERE, null, ex);
         }
-        
+
         return summaryPosition;
     }
 
     /**
-     * Try and get the latitude and longitude from either the place url
-     * @return
+     * Try and get the latitude and longitude from the location reference URL
+     * @param locationRef 
+     * @return - valid position or null if unobtainable
      */
     private Position getLocationFromRef(URL locationRef) {
-        HTMLPageParser theParser = new HTMLPageParser(theLogger);
-        Document document = theParser.getParsedPage(locationRef);
-        WikipediaPage thePage = new WikipediaPage(document, theLogger);
+        WikipediaPage thePage = new WikipediaPage(locationRef, theLogger);
         Position refPosition = thePage.getPageCoords();
-
         return refPosition;
     }
-    
-        /*
-     * Get the summary from the top left of the page
-     *
+
+    /**
+     * Try and get the period from page summary
+     * @param summaryData 
+     * @return - valid period or null if not obtainable
      */
-    public Period getDateFromSummary(NodeList summaryData) {
+    private Period getDateFromSummary(NodeList summaryData) {
         Period summaryPeriod = null;
-        
+
         try {
             int theLength = summaryData.getLength();
             boolean dateFound = false;
@@ -410,64 +474,24 @@ public class WikipediaPage {
         } catch (XPathExpressionException ex) {
             theLogger.log(Level.SEVERE, null, ex);
         }
-        
-        return summaryPeriod; 
-    } 
-    
-       /*
-     * Get the summary from the top left of the page
-     *
+
+        return summaryPeriod;
+    }
+
+    /**
+     * Try and get the period from the first para of the page (usually an 
+     * abstract of the full page)
+     * @param theFirstPara 
+     * @return - valid period or null if not obtainable
      */
-    public Period getDateFromFirstPara(Node theFirstPara) {
+    private Period getDateFromFirstPara(Node theFirstPara) {
         String testString = theFirstPara.getTextContent();
-        Date testDate = getOccurenceDate(testString);
+        Date testDate = Period.extractDateFromText(testString);
 
         if (testDate != null) {
             return new Period(testDate, testDate);
         } else {
             return null;
         }
-    }
-    
-        // todo cut this into as few patterns as possible
-    private Date getOccurenceDate(String paragraphText) {
-        Date retVal = null;
-        List<Pattern> theDatePatterns = new ArrayList<Pattern>();
-        theDatePatterns.add(Pattern.compile(" \\d\\d January \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d February \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d March \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d April \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d May \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d June \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d July \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d August \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d September \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d October \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d November \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d December \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d January \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d February \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d March \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d April \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d May \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d June \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d July \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d August \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d September \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d October \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d November \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d December \\d\\d\\d\\d"));
-
-        for (int i = 0; i < theDatePatterns.size() && retVal == null; ++i) {
-            Matcher theMatcher = theDatePatterns.get(i).matcher(paragraphText);
-            boolean matchFound = theMatcher.find();
-
-            if (matchFound) {
-                String matchingString = theMatcher.group();
-                retVal = Period.getDate(matchingString);
-            }
-        }
-
-        return retVal;
     }
 }

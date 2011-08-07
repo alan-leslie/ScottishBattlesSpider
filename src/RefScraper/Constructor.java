@@ -8,14 +8,10 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.w3c.dom.Document;
 
 /**
  * The Constructor class is responsible for constructing the workloads.
  * So it connects to the initial page and looks for links of interest.
- *
- * todo - change so that it tales a list of pages to work with
- * need a list of hrefs processed (added to workload) also
  * @author al
  */
 public class Constructor implements Callable<String> {
@@ -24,21 +20,6 @@ public class Constructor implements Callable<String> {
      * the URL that this worker uses to get data
      */
     private List<URL> target;
-
-    /**
-     * 
-     * @param index 
-     * @return - the URL that this worker uses to get data
-     */
-    public String getTarget(int index) {
-        String retVal = "";
-
-        if (index < target.size()) {
-            target.get(index).toString();
-        }
-
-        return retVal;
-    }
     /**
      * The controller which drives this worker.
      */
@@ -74,16 +55,29 @@ public class Constructor implements Callable<String> {
     }
 
     /**
+     * 
+     * @param index 
+     * @return - the URL \t the required index
+     */
+    public String getTarget(int index) {
+        String retVal = "";
+
+        if (index < target.size()) {
+            target.get(index).toString();
+        }
+
+        return retVal;
+    }
+
+    /**
      * @return - "Complete"
      */
     public String call() {
-        HTMLPageParser theParser = new HTMLPageParser(theLogger);
         List<String> linksAdded = new ArrayList<String>();
 
         for (int i = 0; i < target.size(); ++i) {
             theLogger.log(Level.INFO, "Constructing fom page {0}", target.get(i));
-            Document theDoc = theParser.getParsedPage(target.get(i));
-            WikipediaPage thePage = new WikipediaPage(theDoc, theLogger);
+            WikipediaPage thePage = new WikipediaPage(target.get(i), theLogger);
             processFile(thePage, linksAdded);
             theLogger.log(Level.INFO, "Constructing fom page {0} - complete", target.get(i));
         }

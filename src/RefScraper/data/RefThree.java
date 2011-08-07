@@ -1,6 +1,5 @@
 package RefScraper.data;
 
-import RefScraper.HTMLPageParser;
 import RefScraper.WikipediaPage;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
@@ -8,9 +7,6 @@ import java.net.URL;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Class to hold information for placing a reference that has position and date
@@ -81,7 +77,7 @@ public class RefThree implements Comparable {
             ps.print("\" ");
 
             Date theEndDate = thePeriod.getEndDate();
-            
+
             if (theEndDate != null
                     && theEndDate.after(thePeriod.getStartDate())) {
                 ps.print("end=\"");
@@ -152,26 +148,10 @@ public class RefThree implements Comparable {
      * @return - a unique id for the placemark
      */
     public boolean complete() {
-        HTMLPageParser theParser = new HTMLPageParser(theLogger);
-        Document theDocument = theParser.getParsedPage(theURL);
-        WikipediaPage thePage = new WikipediaPage(theDocument, theLogger);
+        WikipediaPage thePage = new WikipediaPage(theURL, theLogger);
 
-        thePosition = thePage.getPageCoords();
-        NodeList summaryFromPage = thePage.getSummary();
-
-        if (summaryFromPage == null) {
-            Node theFirstPara = thePage.getFirstPara();
-
-            if (theFirstPara != null) {
-                thePeriod = thePage.getDateFromFirstPara(theFirstPara);
-            }
-        } else {
-            thePeriod = thePage.getDateFromSummary(summaryFromPage);
-
-            if (!isPositionSet()) {
-                thePosition = thePage.getLocationFromSummary(summaryFromPage);
-            }
-        }
+        thePosition = thePage.getPosition();
+        thePeriod = thePage.getPeriod();
 
         // try to recover if data is only partially set
         if ((isPeriodSet() || isPositionSet()) && !(isPeriodSet() && isPositionSet())) {
@@ -195,7 +175,7 @@ public class RefThree implements Comparable {
             return false;
         }
     }
-    
+
     private boolean isPositionSet() {
         return (thePosition != null);
     }
@@ -209,8 +189,6 @@ public class RefThree implements Comparable {
 
         return retVal;
     }
-
-
 
     public int compareTo(Object anotherPlacemark) throws ClassCastException {
         if (!(anotherPlacemark instanceof RefThree)) {
