@@ -1,11 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package RefScraper.data;
 
 /**
- *
+ * model a html link
  * @author al
  */
 public class HTMLLink {
@@ -13,7 +9,10 @@ public class HTMLLink {
     private String theHREF;
     private static String theBaseURL = "http://en.wikipedia.org";
 
-    
+    /*
+     * @param - text 
+     * @param - lhref
+     */    
     HTMLLink(String text, 
             String href)
     {
@@ -25,10 +24,18 @@ public class HTMLLink {
         }
     }
     
+    /**
+     * 
+     * @return - the text of the hyperlink
+     */
     public String getText(){
         return theText;
     }
     
+    /**
+     * 
+     * @return - the hyperlink URL
+     */
     public String getHREF(){
         return theHREF;
     }   

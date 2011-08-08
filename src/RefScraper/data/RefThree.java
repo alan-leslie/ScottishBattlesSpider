@@ -8,8 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Class to hold information for placing a reference that has position and date
- * or duration
+ * Class to hold information for a HREF, a position and a duration.
  * @author al
  */
 public class RefThree implements Comparable {
@@ -45,8 +44,8 @@ public class RefThree implements Comparable {
     }
 
     /**
-     * a copy constructor so that the object is not shred in threads
-     * @param theOther 
+     * a copy constructor to make sure that the object is not shared in threads
+     * @param theOther - the original to be copied
      */
     public RefThree(RefThree theOther) {
         theName = theOther.theName;
@@ -67,9 +66,10 @@ public class RefThree implements Comparable {
     }
 
     /**
-     * 
+     * Output the placemark data in different xml formats.
      * @param ps - the stream to where the data is written
-     * @param asKML  
+     * @param asKML - whether the output format is for google maps (KML) or 
+     * timeline (XML)
      */
     public void outputAsXML(PrintStream ps,
             boolean asKML) {
@@ -149,10 +149,17 @@ public class RefThree implements Comparable {
         String strId = theName.replaceAll(" ", "");
         return strId;
     }
+    
+   /**
+     * @return - the href of this placemark
+     */
+    public String getHREF() {
+        return theHREF;
+    }
 
     /**
-     * 
-     * @return - a unique id for the placemark
+     * attempt to fill in all of the placemark data
+     * @return - whether all of the required data has been completed
      */
     public boolean complete() {
         WikipediaPage thePage = new WikipediaPage(theURL, theLogger);
@@ -183,14 +190,23 @@ public class RefThree implements Comparable {
         }
     }
 
+    /**
+     * @return - whether all of the position data has been set
+     */
     private boolean isPositionSet() {
         return (thePosition != null && thePosition.isComplete());
     }
-
+    
+    /**
+     * @return - whether all of the period data has been set
+     */
     private boolean isPeriodSet() {
         return (thePeriod != null && thePeriod.isComplete());
     }
-
+    
+    /**
+     * @return - whether all of the required data has been set
+     */
     private boolean isComplete() {
         boolean retVal = isPositionSet() && isPeriodSet();
         return retVal;
@@ -202,9 +218,5 @@ public class RefThree implements Comparable {
         }
         String anotherPlacemarkName = ((RefThree) anotherPlacemark).getId();
         return this.getId().compareTo(anotherPlacemarkName);
-    }
-
-    public String getHREF() {
-        return theHREF;
-    }
+    }  
 }

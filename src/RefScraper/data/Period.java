@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package RefScraper.data;
 
 import java.text.DateFormat;
@@ -15,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
+ * Models a period (start - end dates)
  * @author al
  */
 public class Period {
@@ -23,12 +19,21 @@ public class Period {
     private Date theStartDate;
     private Date theEndDate;
 
+    /**
+     * 
+     * @param startDate 
+     * @param endDate
+     */
     public Period(Date startDate,
             Date endDate) {
         theStartDate = startDate;
         theEndDate = endDate;
     }
    
+    /**
+     * 
+     * @return - whether the period data is wholly complete
+     */
     public boolean isComplete(){
         boolean startComplete = (theStartDate != null && !theStartDate.toString().isEmpty());
         boolean endComplete = (theEndDate != null && !theEndDate.toString().isEmpty());
@@ -36,14 +41,25 @@ public class Period {
         return (startComplete && endComplete);
     }
 
+    /**
+     * @return - the start date
+     */
     Date getStartDate() {
         return theStartDate;
     }
 
+    /**
+     * @return - the end date
+     */
     Date getEndDate() {
         return theEndDate;
     }
 
+    /**
+     * @param dateString - the string that denotes the date info
+     * @return - a Period object or null if the start and end are the same
+     * or unobtainable
+     */
     public static Period getRealPeriod(String dateString) {
         Pattern thePattern = Pattern.compile("\\d\\d\\d\\d-\\d\\d\\d\\d");
         Matcher theMatcher = thePattern.matcher(dateString);
@@ -70,6 +86,10 @@ public class Period {
         return realPeriod;
     }
 
+    /**
+     * @param dateString - the string that denotes the date info
+     * @return - a date or null if the date format is not found
+     */
     // todo - formatters list should be set up once (if needed) only
     // deal with confusion between dd/mm/yyyy and mm/dd/yyyy
     public static Date getDate(String dateString) {
@@ -94,7 +114,12 @@ public class Period {
 
         return retVal;
     }
-
+    
+    /**
+     * @param paragraphText - string that includes a date in the format e.g. 
+     * 13 August 1970
+     * @return - a date or null if the date format is not found
+     */
     // todo cut this into as few patterns as possible
     public static Date extractDateFromText(String paragraphText) {
         Date retVal = null;

@@ -1,7 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package RefScraper.data;
 
 import java.io.BufferedReader;
@@ -17,12 +14,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Map for period data that is known before scrape is run
  * @author al
  */
 public class PeriodMap {
     private static PeriodMap thePeriodMap;
     
+    // @ThreadSafe
     public synchronized static PeriodMap getInstance(){
         if(thePeriodMap == null){
             thePeriodMap = new PeriodMap();
@@ -71,6 +69,10 @@ public class PeriodMap {
         }
     }
 
+    /*
+     * @param - the key of the date searched for
+     * @return - start date corresponding to the key or null
+     */
     synchronized Date getStartDate(String key) {
         Period thePeriod = theMap.get(key);
 
@@ -80,7 +82,11 @@ public class PeriodMap {
             return null;
         }
     }
-
+    
+    /*
+     * @param - the key of the date searched for
+     * @return - end date corresponding to the key or null
+     */
     synchronized Date getEndDate(String key) {
         Period thePeriod = theMap.get(key);
 

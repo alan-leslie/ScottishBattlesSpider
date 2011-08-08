@@ -40,7 +40,7 @@ public class RefThrees {
     /**
      * 
      * @param outputDir - the directory where the castles file will be written.
-     * @param asKML  
+     * @param asKML  - whether output is for google maps (kml) or timeline (xml)
      */
     public void outputAsXML(String outputDir,
             boolean asKML) {

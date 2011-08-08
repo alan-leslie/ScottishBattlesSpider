@@ -8,28 +8,44 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * Class to model position (latitude and longitude)
  * @author al
  */
 public class Position {
     private String theLatitude;
     private String theLongitude;
     
-    // inputs should be in DMS format
+    /**
+     * 
+     * @param latitude - dms format
+     * @param longitude - dms format 
+     */
     public Position(String latitude, 
             String longitude){
         theLatitude = latitude;
         theLongitude = longitude;        
     }
     
+    /**
+     * 
+     * @return - latitude in dms format
+     */
     public String getLatitude(){
         return theLatitude;
     }
     
+    /**
+     * 
+     * @return - longitude in dms format
+     */
     public String getLongitude(){
         return theLongitude;
     }   
     
+    /**
+     * 
+     * @return -whether the position data is complete and valid
+     */
     public boolean isComplete(){
         boolean latComplete = (theLatitude != null && !theLatitude.isEmpty());
         boolean lonComplete = (theLongitude != null && !theLongitude.isEmpty());
@@ -37,14 +53,26 @@ public class Position {
         return (latComplete && lonComplete);
     }
     
+    /**
+     * 
+     * @return - latitude in decimal format
+     */
     public String getLatitudeDD(){
         return convertDMSToDecimal(theLatitude);
     }
     
+    /**
+     * 
+     * @return - longitude in decimal format
+     */
     public String getLongitudeDD(){
         return convertDMSToDecimal(theLongitude);
     }   
     
+    /**
+     * @param lat or long in dms format
+     * @return - decimal format version
+     */
     private String convertDMSToDecimal(String dmsString) {
         String retVal = "";
         List<Double> dmsList = new ArrayList<Double>();

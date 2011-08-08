@@ -1,7 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package RefScraper.data;
 
 import java.io.BufferedReader;
@@ -11,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * Map for position data that is known before scrape is run
  * @author al
  */
 public class PositionMap {
@@ -58,6 +55,10 @@ public class PositionMap {
         }
     }
 
+    /*
+     * @param - the key of the position searched for
+     * @return - longitude corresponding to the key or null
+     */
     synchronized String getLongitude(String key) {
         Position thePos = theMap.get(key);
 
@@ -67,7 +68,11 @@ public class PositionMap {
             return null;
         }
     }
-
+    
+    /*
+     * @param - the key of the position searched for
+     * @return - latitude corresponding to the key or null
+     */
     synchronized String getLatitude(String key) {
         Position thePos = theMap.get(key);
 

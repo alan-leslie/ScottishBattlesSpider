@@ -19,20 +19,21 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 /**
- *
+ * Parses HTML pages using CORBA parser
  * @author al
  */
 public class HTMLPageParser {
-    /*
-     * Parses HTML pages using CORBA parser
-     */
 
     private final Logger theLogger;
 
     HTMLPageParser(Logger logger) {
         theLogger = logger;
     }
-
+    
+    /*
+     * @param - theURL the page to be parsed
+     * @return - parsed html of the page
+     */
     Document getParsedPage(URL theURL) {
         Document theResult = null;
 
