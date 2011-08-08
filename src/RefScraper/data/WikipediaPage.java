@@ -1,12 +1,5 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package RefScraper.data;
 
-import RefScraper.data.HTMLPageParser;
-import RefScraper.data.Period;
-import RefScraper.data.Position;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
