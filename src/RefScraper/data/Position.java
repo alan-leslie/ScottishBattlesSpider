@@ -30,6 +30,13 @@ public class Position {
         return theLongitude;
     }   
     
+    public boolean isComplete(){
+        boolean latComplete = (theLatitude != null && !theLatitude.isEmpty());
+        boolean lonComplete = (theLongitude != null && !theLongitude.isEmpty());
+        
+        return (latComplete && lonComplete);
+    }
+    
     public String getLatitudeDD(){
         return convertDMSToDecimal(theLatitude);
     }

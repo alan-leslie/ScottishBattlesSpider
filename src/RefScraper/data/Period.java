@@ -28,6 +28,13 @@ public class Period {
         theStartDate = startDate;
         theEndDate = endDate;
     }
+   
+    public boolean isComplete(){
+        boolean startComplete = (theStartDate != null && !theStartDate.toString().isEmpty());
+        boolean endComplete = (theEndDate != null && !theEndDate.toString().isEmpty());
+        
+        return (startComplete && endComplete);
+    }
 
     Date getStartDate() {
         return theStartDate;

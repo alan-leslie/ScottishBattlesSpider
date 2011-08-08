@@ -77,7 +77,9 @@ public class WikipediaPage {
                 theSummary = getSummary();
             }
 
-            thePosition = getLocationFromSummary(theSummary);
+            if(theSummary != null){
+                thePosition = getLocationFromSummary(theSummary);
+            }
         }
 
         return thePosition;
@@ -92,15 +94,19 @@ public class WikipediaPage {
 
         if (theFirstPara == null) {
             theFirstPara = getFirstPara();
-
-            thePeriod = getDateFromFirstPara(theFirstPara);
+            
+            if(theFirstPara != null){
+                thePeriod = getDateFromFirstPara(theFirstPara);
+            }
 
             if (thePeriod == null) {
                 if (theSummary == null) {
                     theSummary = getSummary();
                 }
-
-                thePeriod = getDateFromSummary(theSummary);
+                
+                if(theSummary != null){
+                    thePeriod = getDateFromSummary(theSummary);
+                }
             }
         }
 

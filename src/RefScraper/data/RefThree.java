@@ -50,10 +50,18 @@ public class RefThree implements Comparable {
      */
     public RefThree(RefThree theOther) {
         theName = theOther.theName;
-        thePosition = new Position(theOther.thePosition.getLatitude(), theOther.thePosition.getLongitude());
+        if(theOther.thePosition == null){
+            thePosition = null; 
+        } else {
+            thePosition = new Position(theOther.thePosition.getLatitude(), theOther.thePosition.getLongitude());
+        }
         theLocationRef = theOther.theLocationRef;
         thePlace = theOther.thePlace;
-        thePeriod = new Period(theOther.thePeriod.getStartDate(), theOther.thePeriod.getEndDate());
+        if(theOther.thePeriod == null){
+            thePeriod = null;
+        } else {
+            thePeriod = new Period(theOther.thePeriod.getStartDate(), theOther.thePeriod.getEndDate());          
+        }
         theURL = theOther.theURL;
         theLogger = theOther.theLogger;
     }
@@ -176,22 +184,21 @@ public class RefThree implements Comparable {
     }
 
     private boolean isPositionSet() {
-        return (thePosition != null);
+        return (thePosition != null && thePosition.isComplete());
     }
 
     private boolean isPeriodSet() {
-        return (thePeriod != null);
+        return (thePeriod != null && thePeriod.isComplete());
     }
 
     private boolean isComplete() {
         boolean retVal = isPositionSet() && isPeriodSet();
-
         return retVal;
     }
 
     public int compareTo(Object anotherPlacemark) throws ClassCastException {
         if (!(anotherPlacemark instanceof RefThree)) {
-            throw new ClassCastException("A Placemark object expected.");
+            throw new ClassCastException("A RefThree object expected.");
         }
         String anotherPlacemarkName = ((RefThree) anotherPlacemark).getId();
         return this.getId().compareTo(anotherPlacemarkName);
