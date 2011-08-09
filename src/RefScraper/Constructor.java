@@ -1,7 +1,7 @@
 package RefScraper;
 
 import RefScraper.data.HTMLLink;
-import RefScraper.data.WikipediaPage;
+import RefScraper.data.WikipediaListPage;
 import RefScraper.data.RefThree;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -79,7 +79,7 @@ public class Constructor implements Callable<String> {
 
         for (int i = 0; i < target.size(); ++i) {
             theLogger.log(Level.INFO, "Constructing fom page {0}", target.get(i));
-            WikipediaPage thePage = new WikipediaPage(target.get(i), theLogger);
+            WikipediaListPage thePage = new WikipediaListPage(target.get(i), theLogger);
             processFile(thePage, linksAdded);
             theLogger.log(Level.INFO, "Constructing fom page {0} - complete", target.get(i));
         }
@@ -94,7 +94,7 @@ public class Constructor implements Callable<String> {
      * @param document - valid parsed html document
      * @return  
      */
-    private boolean processFile(WikipediaPage thePage,
+    private boolean processFile(WikipediaListPage thePage,
             List<String> linksAdded) {
         List<HTMLLink> theCandidates = thePage.getCandidates();
         int linksLength = theCandidates.size();

@@ -162,7 +162,7 @@ public class RefThree implements Comparable {
      * @return - whether all of the required data has been completed
      */
     public boolean complete() {
-        WikipediaPage thePage = new WikipediaPage(theURL, theLogger);
+        WikipediaDetailPage thePage = new WikipediaDetailPage(theURL, theLogger);
 
         thePosition = thePage.getPosition();
         thePeriod = thePage.getPeriod();
