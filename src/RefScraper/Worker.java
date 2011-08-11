@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 
 /**
  * The Worker class performs the actual work of
- * looking at sub pages to find locations.  
+ * completing the refthree data by looking into sub pages.  
  *
  * @author al
  */
