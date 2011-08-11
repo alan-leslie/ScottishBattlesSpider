@@ -15,7 +15,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * Model of wikipedia page
+ * Model of wikipedia detail page (contains details of period position).
  * @author al
  */
 public class WikipediaDetailPage {
@@ -28,7 +28,7 @@ public class WikipediaDetailPage {
     private static String theBaseURL = "http://en.wikipedia.org";
 
     /**
-     * Constructs model of wikipedia page.
+     * Constructs model of wikipedia detailpage.
      * @param newURL 
      * @param logger  
      */
@@ -49,16 +49,16 @@ public class WikipediaDetailPage {
     }
 
     /**
-     * Finds the period from the page.
-     * @return -valid period or null if unobtainable
+     * 
+     * @return -valid URL of this page.
      */
     public URL getURL() {
         return theURL;
     }
 
     /**
-     * Finds the period from the page.
-     * @return -valid period or null if unobtainable
+     * Finds the position from the page.
+     * @return -valid position or null if unobtainable
      */
     public Position getPosition() {
         Position thePosition = getPageCoords();
@@ -137,7 +137,7 @@ public class WikipediaDetailPage {
 
     /*
      * Get the first paragraph (usually an abstract of the page).
-     * @return node representation of first para
+     * @return node representing the first para
      *
      */
     private Node getFirstPara() {
@@ -164,7 +164,7 @@ public class WikipediaDetailPage {
     }
 
     /*
-     * Get the position from the coordinates field on the top left of the page
+     * Get the position from the coordinates field on the page
      * @return - valid position or null if unobtainable
      *
      */
@@ -192,7 +192,7 @@ public class WikipediaDetailPage {
 
     /**
      * Try and get the position from the summary of the page
-     * @param tsummaryData 
+     * @param summaryData 
      * @return - valid position or null if not obtainable
      */
     private Position getLocationFromSummary(NodeList summaryData) {

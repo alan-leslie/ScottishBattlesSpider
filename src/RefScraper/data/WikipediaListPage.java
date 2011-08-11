@@ -14,7 +14,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * Model of wikipedia page
+ * Model of wikipedia page that contains lists of items to be processed
  * @author al
  */
 public class WikipediaListPage {
@@ -27,7 +27,7 @@ public class WikipediaListPage {
     private static String theBaseURL = "http://en.wikipedia.org";
 
     /**
-     * Constructs model of wikipedia page.
+     * Constructs model of wikipedia list page.
      * @param newURL 
      * @param logger  
      */
