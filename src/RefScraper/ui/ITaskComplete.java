@@ -1,12 +1,7 @@
 package RefScraper.ui;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
- *
+ * Interface to mark that the underlying task is complete.
  * @author al
  */
 public interface ITaskComplete {

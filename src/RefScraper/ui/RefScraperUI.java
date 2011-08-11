@@ -9,7 +9,7 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
 /**
- *
+ * minimal UI for the ref scraper. 
  * @author al
  */
 public class RefScraperUI extends javax.swing.JFrame implements ITaskComplete {
