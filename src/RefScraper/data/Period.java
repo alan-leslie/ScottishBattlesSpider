@@ -29,15 +29,15 @@ public class Period {
         theStartDate = startDate;
         theEndDate = endDate;
     }
-   
+
     /**
      * 
      * @return - whether the period data is wholly complete
      */
-    public boolean isComplete(){
+    public boolean isComplete() {
         boolean startComplete = (theStartDate != null && !theStartDate.toString().isEmpty());
         boolean endComplete = (theEndDate != null && !theEndDate.toString().isEmpty());
-        
+
         return (startComplete && endComplete);
     }
 
@@ -45,14 +45,27 @@ public class Period {
      * @return - the start date
      */
     Date getStartDate() {
-        return theStartDate;
+        return (Date)(theStartDate.clone());
     }
 
     /**
      * @return - the end date
      */
     Date getEndDate() {
-        return theEndDate;
+        return (Date)(theEndDate.clone());
+    }
+
+    /**
+     * @return - whether this period has a real duration, that is that the end
+     * date is after the start
+     */
+    boolean hasDuration() {
+        if (theEndDate != null
+                && theEndDate.after(getStartDate())) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -114,7 +127,7 @@ public class Period {
 
         return retVal;
     }
-    
+
     /**
      * @param paragraphText - string that includes a date in the format e.g. 
      * 13 August 1970

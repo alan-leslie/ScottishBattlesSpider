@@ -49,17 +49,17 @@ public class RefThree implements Comparable {
      */
     public RefThree(RefThree theOther) {
         theName = theOther.theName;
-        if(theOther.thePosition == null){
-            thePosition = null; 
+        if (theOther.thePosition == null) {
+            thePosition = null;
         } else {
             thePosition = new Position(theOther.thePosition.getLatitude(), theOther.thePosition.getLongitude());
         }
         theLocationRef = theOther.theLocationRef;
         thePlace = theOther.thePlace;
-        if(theOther.thePeriod == null){
+        if (theOther.thePeriod == null) {
             thePeriod = null;
         } else {
-            thePeriod = new Period(theOther.thePeriod.getStartDate(), theOther.thePeriod.getEndDate());          
+            thePeriod = new Period(theOther.thePeriod.getStartDate(), theOther.thePeriod.getEndDate());
         }
         theURL = theOther.theURL;
         theLogger = theOther.theLogger;
@@ -76,6 +76,24 @@ public class RefThree implements Comparable {
 
         if (asKML) {
             ps.print("<Placemark>");
+            ps.println();
+
+            if (thePeriod.hasDuration()) {
+                ps.print("<TimeSpan>");
+                ps.print("<begin>");
+                ps.print(thePeriod.getStartDate().toString());
+                ps.print("</begin>");
+                ps.print("<end>");
+                ps.print(thePeriod.getEndDate().toString());
+                ps.print("</end>");
+                ps.print("</TimeSpan>");
+            } else {
+                ps.print("<TimeStamp>");
+                ps.print("<when>");
+                ps.print(thePeriod.getStartDate().toString());
+                ps.print("</when>");
+                ps.print("</TimeStamp>");
+            }
             ps.println();
         } else {
             ps.print("<event ");
@@ -149,8 +167,8 @@ public class RefThree implements Comparable {
         String strId = theName.replaceAll(" ", "");
         return strId;
     }
-    
-   /**
+
+    /**
      * @return - the href of this placemark
      */
     public String getHREF() {
@@ -196,14 +214,14 @@ public class RefThree implements Comparable {
     private boolean isPositionSet() {
         return (thePosition != null && thePosition.isComplete());
     }
-    
+
     /**
      * @return - whether all of the period data has been set
      */
     private boolean isPeriodSet() {
         return (thePeriod != null && thePeriod.isComplete());
     }
-    
+
     /**
      * @return - whether all of the required data has been set
      */
@@ -218,5 +236,5 @@ public class RefThree implements Comparable {
         }
         String anotherPlacemarkName = ((RefThree) anotherPlacemark).getId();
         return this.getId().compareTo(anotherPlacemarkName);
-    }  
+    }
 }
