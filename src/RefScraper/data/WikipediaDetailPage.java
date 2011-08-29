@@ -68,7 +68,7 @@ public class WikipediaDetailPage {
                 theSummary = getSummary();
             }
 
-            if(theSummary != null){
+            if (theSummary != null) {
                 thePosition = getLocationFromSummary(theSummary);
             }
         }
@@ -83,20 +83,20 @@ public class WikipediaDetailPage {
     public Period getPeriod() {
         Period thePeriod = null;
 
-        if (theFirstPara == null) {
-            theFirstPara = getFirstPara();
-            
-            if(theFirstPara != null){
-                thePeriod = getDateFromFirstPara(theFirstPara);
-            }
+        if (theSummary == null) {
+            theSummary = getSummary();
+        }
 
-            if (thePeriod == null) {
-                if (theSummary == null) {
-                    theSummary = getSummary();
-                }
-                
-                if(theSummary != null){
-                    thePeriod = getDateFromSummary(theSummary);
+        if (theSummary != null) {
+            thePeriod = getDateFromSummary(theSummary);
+        }
+
+        if (thePeriod == null) {
+            if (theFirstPara == null) {
+                theFirstPara = getFirstPara();
+
+                if (theFirstPara != null) {
+                    thePeriod = getDateFromFirstPara(theFirstPara);
                 }
             }
         }
@@ -302,7 +302,6 @@ public class WikipediaDetailPage {
 
                             if (theDetail != null) {
                                 String detailText = theDetail.getTextContent();
-
                                 summaryPeriod = Period.getRealPeriod(detailText);
 
                                 if (summaryPeriod == null) {

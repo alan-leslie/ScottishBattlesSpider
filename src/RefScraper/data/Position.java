@@ -6,6 +6,7 @@ import java.util.List;
 /**
  * Class to model position (latitude and longitude)
  * @author al
+ * todo - ensure this is immutable
  */
 public class Position {
     private String theLatitude;

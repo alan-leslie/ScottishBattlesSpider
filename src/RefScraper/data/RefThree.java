@@ -3,7 +3,6 @@ package RefScraper.data;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -168,6 +167,22 @@ public class RefThree implements Comparable {
         return theHREF;
     }
 
+   /**
+     * 
+     * @return - the period
+     */
+    public Period getPeriod() {
+        return thePeriod;
+    }
+    
+   /**
+     * 
+     * @return - the position 
+     */
+    public Position getPosition() {
+        return thePosition;
+    }
+    
     /**
      * attempt to fill in all of the placemark data
      * @return - whether all of the required data has been completed

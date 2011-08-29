@@ -8,7 +8,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Scanner;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,6 +15,7 @@ import java.util.regex.Pattern;
 /**
  * Models a period (start - end dates)
  * @author al
+ * todo - ensure this is immutable
  */
 public class Period {
 
@@ -78,52 +78,54 @@ public class Period {
      * todo - may need to look for the patterns to and until rather than -
      */
     public static Period getRealPeriod(String dateString) {
-        Pattern thePattern = Pattern.compile("-");
-        Matcher theMatcher = thePattern.matcher(dateString);
-        boolean hasRealPeriod = dateString.contains("-");
+        Pattern p = Pattern.compile("[^A-Za-z_0-9 ]+");
+        String[] theParts = p.split(dateString);
+
+        if (theParts.length < 2) {
+            theParts = dateString.split("-");
+        }
+
+        boolean hasRealPeriod = theParts.length > 1;
         Period realPeriod = null;
 
         if (hasRealPeriod) {
-            String theParts[] = dateString.split("-");
+            DateFormat theDayMonthFormat = new SimpleDateFormat("dd MMMM");
+            theDayMonthFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+            DateFormat theFullDateFormat = new SimpleDateFormat("dd MMMM yyyy");
+            theFullDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+            DateFormat theYearFormat = new SimpleDateFormat("yyyy");
+            theYearFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 
-            if (theParts.length > 1) {
-                DateFormat theDayMonthFormat = new SimpleDateFormat("dd MMMM");
-                theDayMonthFormat.setTimeZone(TimeZone.getTimeZone("Europe/Edinburgh"));
-                DateFormat theFullDateFormat = new SimpleDateFormat("dd MMMM yyyy");
-                theFullDateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Edinburgh"));
-                DateFormat theYearFormat = new SimpleDateFormat("yyyy");
-                theYearFormat.setTimeZone(TimeZone.getTimeZone("Europe/Edinburgh"));
-                
+            try {
+                Date theStartDate = theFullDateFormat.parse(theParts[0]);
+                Date theEndDate = theFullDateFormat.parse(theParts[1]);
+                realPeriod = new Period(theStartDate, theEndDate);
+            } catch (ParseException ex) {
+                // parse failure means that the period is not a real period
+                // handled by leaving the return value as null
+            }
+
+            if (realPeriod == null) {
+
                 try {
-                    Date theStartDate = theFullDateFormat.parse(theParts[0]);
+                    Date theStartDate = theDayMonthFormat.parse(theParts[0]);
                     Date theEndDate = theFullDateFormat.parse(theParts[1]);
-                    realPeriod = new Period(theStartDate, theEndDate);
+                    Calendar theStartDateCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+                    theStartDateCal.setTime(theStartDate);
+                    Calendar theEndDateCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+                    theEndDateCal.setTime(theEndDate);
+                    theStartDateCal.set(Calendar.YEAR, theEndDateCal.get(Calendar.YEAR));
+                    realPeriod = new Period(theStartDateCal.getTime(), theEndDateCal.getTime());
                 } catch (ParseException ex) {
                     // parse failure means that the period is not a real period
                     // handled by leaving the return value as null
                 }
-                
-                if (realPeriod == null) {
-
-                    try {
-                        Date theStartDate = theDayMonthFormat.parse(theParts[0]);
-                        Date theEndDate = theFullDateFormat.parse(theParts[1]);
-                        Calendar theStartDateCal = new GregorianCalendar(TimeZone.getTimeZone("Europe/Edinburgh"));
-                        theStartDateCal.setTime(theStartDate);
-                        Calendar theEndDateCal = new GregorianCalendar(TimeZone.getTimeZone("Europe/Edinburgh"));
-                        theEndDateCal.setTime(theEndDate);
-                        theStartDateCal.set(Calendar.YEAR, theEndDateCal.get(Calendar.YEAR));
-                        realPeriod = new Period(theStartDateCal.getTime(), theEndDateCal.getTime());
-                    } catch (ParseException ex) {
-                        // parse failure means that the period is not a real period
-                        // handled by leaving the return value as null
-                    }
-                }
-                
+            }
 
 
-                    if (realPeriod == null) {
-                                        try {
+
+            if (realPeriod == null) {
+                try {
                     Date theStartDate = theYearFormat.parse(theParts[0]);
                     Date theEndDate = theYearFormat.parse(theParts[1]);
                     realPeriod = new Period(theStartDate, theEndDate);
@@ -132,9 +134,9 @@ public class Period {
                     // handled by leaving the return value as null
                 }
 
-                }
             }
         }
+
 
         return realPeriod;
     }
@@ -149,13 +151,24 @@ public class Period {
     public static Date getDate(String dateString) {
         Date retVal = null;
         List<DateFormat> theFormatters = new ArrayList<DateFormat>();
-        theFormatters.add(new SimpleDateFormat("dd MMMM yyyy"));
-        theFormatters.add(new SimpleDateFormat("MMMM dd, yyyy"));
-        theFormatters.add(new SimpleDateFormat("dd/MM/yyyy"));
-        theFormatters.add(new SimpleDateFormat("MM/dd/yyyy"));
-        theFormatters.add(new SimpleDateFormat("MMMM, yyyy"));
-        theFormatters.add(new SimpleDateFormat("MMMM yyyy"));
-        theFormatters.add(new SimpleDateFormat("yyyy"));
+        SimpleDateFormat theDateFormat = new SimpleDateFormat("dd MMMM yyyy");
+        theDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        theFormatters.add(theDateFormat);
+        theDateFormat = new SimpleDateFormat("MMMM dd, yyyy");
+        theDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        theFormatters.add(theDateFormat);
+        theDateFormat = new SimpleDateFormat("MM/dd/yyyy");
+        theDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        theFormatters.add(theDateFormat);
+        theDateFormat = new SimpleDateFormat("MMMM, yyyy");
+        theDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        theFormatters.add(theDateFormat);
+        theDateFormat = new SimpleDateFormat("MMMM yyyy");
+        theDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        theFormatters.add(theDateFormat);
+        theDateFormat = new SimpleDateFormat("yyyy");
+        theDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        theFormatters.add(theDateFormat);
 
         for (int i = 0; i < theFormatters.size() && retVal == null; ++i) {
             try {
@@ -178,30 +191,18 @@ public class Period {
     public static Date extractDateFromText(String paragraphText) {
         Date retVal = null;
         List<Pattern> theDatePatterns = new ArrayList<Pattern>();
-        theDatePatterns.add(Pattern.compile(" \\d\\d January \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d February \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d March \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d April \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d May \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d June \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d July \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d August \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d September \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d October \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d November \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d\\d December \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d January \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d February \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d March \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d April \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d May \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d June \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d July \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d August \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d September \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d October \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d November \\d\\d\\d\\d"));
-        theDatePatterns.add(Pattern.compile(" \\d December \\d\\d\\d\\d"));
+        theDatePatterns.add(Pattern.compile("\\d+ January \\d+"));
+        theDatePatterns.add(Pattern.compile("\\d+ February \\d+"));
+        theDatePatterns.add(Pattern.compile("\\d+ March \\d+"));
+        theDatePatterns.add(Pattern.compile("\\d+ April \\d+"));
+        theDatePatterns.add(Pattern.compile("\\d+ May \\d+"));
+        theDatePatterns.add(Pattern.compile("\\d+ June \\d+"));
+        theDatePatterns.add(Pattern.compile("\\d+ July \\d+"));
+        theDatePatterns.add(Pattern.compile("\\d+ August \\d+"));
+        theDatePatterns.add(Pattern.compile("\\d+ September \\d+"));
+        theDatePatterns.add(Pattern.compile("\\d+ October \\d+"));
+        theDatePatterns.add(Pattern.compile("\\d+ November \\d+"));
+        theDatePatterns.add(Pattern.compile("\\d+ December \\d+"));
 
         for (int i = 0; i < theDatePatterns.size() && retVal == null; ++i) {
             Matcher theMatcher = theDatePatterns.get(i).matcher(paragraphText);
@@ -209,7 +210,13 @@ public class Period {
 
             if (matchFound) {
                 String matchingString = theMatcher.group();
-                retVal = Period.getDate(matchingString);
+                String theParts[] = matchingString.split(" ");
+                int theDay = Integer.parseInt(theParts[0]);
+                int theYear = Integer.parseInt(theParts[2]);
+
+                if (!(theDay < 1 || theDay > 31 || theYear < 1 || theYear > 5000)) {
+                    retVal = Period.getDate(matchingString);
+                }
             }
         }
 
