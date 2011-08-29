@@ -4,9 +4,12 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Scanner;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,14 +48,14 @@ public class Period {
      * @return - the start date
      */
     Date getStartDate() {
-        return (Date)(theStartDate.clone());
+        return (Date) (theStartDate.clone());
     }
 
     /**
      * @return - the end date
      */
     Date getEndDate() {
-        return (Date)(theEndDate.clone());
+        return (Date) (theEndDate.clone());
     }
 
     /**
@@ -72,27 +75,64 @@ public class Period {
      * @param dateString - the string that denotes the date info
      * @return - a Period object or null if the start and end are the same
      * or unobtainable
+     * todo - may need to look for the patterns to and until rather than -
      */
     public static Period getRealPeriod(String dateString) {
-        Pattern thePattern = Pattern.compile("\\d\\d\\d\\d-\\d\\d\\d\\d");
+        Pattern thePattern = Pattern.compile("-");
         Matcher theMatcher = thePattern.matcher(dateString);
-        boolean hasRealPeriod = theMatcher.matches();
+        boolean hasRealPeriod = dateString.contains("-");
         Period realPeriod = null;
 
         if (hasRealPeriod) {
-            Scanner s = new Scanner(dateString).useDelimiter("-");
-            Integer theStartYear = new Integer(s.nextInt());
-            Integer theEndYear = new Integer(s.nextInt());
+            String theParts[] = dateString.split("-");
 
-            DateFormat theYearFormat = new SimpleDateFormat("yyyy");
+            if (theParts.length > 1) {
+                DateFormat theDayMonthFormat = new SimpleDateFormat("dd MMMM");
+                theDayMonthFormat.setTimeZone(TimeZone.getTimeZone("Europe/Edinburgh"));
+                DateFormat theFullDateFormat = new SimpleDateFormat("dd MMMM yyyy");
+                theFullDateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Edinburgh"));
+                DateFormat theYearFormat = new SimpleDateFormat("yyyy");
+                theYearFormat.setTimeZone(TimeZone.getTimeZone("Europe/Edinburgh"));
+                
+                try {
+                    Date theStartDate = theFullDateFormat.parse(theParts[0]);
+                    Date theEndDate = theFullDateFormat.parse(theParts[1]);
+                    realPeriod = new Period(theStartDate, theEndDate);
+                } catch (ParseException ex) {
+                    // parse failure means that the period is not a real period
+                    // handled by leaving the return value as null
+                }
+                
+                if (realPeriod == null) {
 
-            try {
-                Date theStartDate = theYearFormat.parse(theStartYear.toString());
-                Date theEndDate = theYearFormat.parse(theEndYear.toString());
-                realPeriod = new Period(theStartDate, theEndDate);
-            } catch (ParseException ex) {
-                // parse failure means that the period is not a real period
-                // handled by leaving the return value as null
+                    try {
+                        Date theStartDate = theDayMonthFormat.parse(theParts[0]);
+                        Date theEndDate = theFullDateFormat.parse(theParts[1]);
+                        Calendar theStartDateCal = new GregorianCalendar(TimeZone.getTimeZone("Europe/Edinburgh"));
+                        theStartDateCal.setTime(theStartDate);
+                        Calendar theEndDateCal = new GregorianCalendar(TimeZone.getTimeZone("Europe/Edinburgh"));
+                        theEndDateCal.setTime(theEndDate);
+                        theStartDateCal.set(Calendar.YEAR, theEndDateCal.get(Calendar.YEAR));
+                        realPeriod = new Period(theStartDateCal.getTime(), theEndDateCal.getTime());
+                    } catch (ParseException ex) {
+                        // parse failure means that the period is not a real period
+                        // handled by leaving the return value as null
+                    }
+                }
+                
+
+
+                    if (realPeriod == null) {
+                                        try {
+                    Date theStartDate = theYearFormat.parse(theParts[0]);
+                    Date theEndDate = theYearFormat.parse(theParts[1]);
+                    realPeriod = new Period(theStartDate, theEndDate);
+                } catch (ParseException ex) {
+                    // parse failure means that the period is not a real period
+                    // handled by leaving the return value as null
+                }
+
+                }
             }
         }
 
@@ -105,16 +145,17 @@ public class Period {
      */
     // todo - formatters list should be set up once (if needed) only
     // deal with confusion between dd/mm/yyyy and mm/dd/yyyy
+    // note that formatters need to be in order of most specific first
     public static Date getDate(String dateString) {
         Date retVal = null;
         List<DateFormat> theFormatters = new ArrayList<DateFormat>();
         theFormatters.add(new SimpleDateFormat("dd MMMM yyyy"));
         theFormatters.add(new SimpleDateFormat("MMMM dd, yyyy"));
+        theFormatters.add(new SimpleDateFormat("dd/MM/yyyy"));
+        theFormatters.add(new SimpleDateFormat("MM/dd/yyyy"));
         theFormatters.add(new SimpleDateFormat("MMMM, yyyy"));
         theFormatters.add(new SimpleDateFormat("MMMM yyyy"));
         theFormatters.add(new SimpleDateFormat("yyyy"));
-        theFormatters.add(new SimpleDateFormat("dd/MM/yyyy"));
-        theFormatters.add(new SimpleDateFormat("MM/dd/yyyy"));
 
         for (int i = 0; i < theFormatters.size() && retVal == null; ++i) {
             try {

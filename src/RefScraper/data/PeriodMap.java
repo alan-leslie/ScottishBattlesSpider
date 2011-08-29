@@ -71,29 +71,11 @@ public class PeriodMap {
 
     /*
      * @param - the key of the date searched for
-     * @return - start date corresponding to the key or null
+     * @return - period corresponding to the key or null if not found
      */
-    synchronized Date getStartDate(String key) {
+    synchronized Period getPeriod(String key) {
         Period thePeriod = theMap.get(key);
-
-        if (thePeriod != null) {
-            return thePeriod.getStartDate();
-        } else {
-            return null;
-        }
+        return thePeriod;
     }
-    
-    /*
-     * @param - the key of the date searched for
-     * @return - end date corresponding to the key or null
-     */
-    synchronized Date getEndDate(String key) {
-        Period thePeriod = theMap.get(key);
 
-        if (thePeriod != null) {
-            return thePeriod.getEndDate();
-        } else {
-            return null;
-        }
-    }    
 }

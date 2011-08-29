@@ -57,29 +57,11 @@ public class PositionMap {
 
     /*
      * @param - the key of the position searched for
-     * @return - longitude corresponding to the key or null
+     * @return - position corresponding to the key or null if not found
      */
-    synchronized String getLongitude(String key) {
-        Position thePos = theMap.get(key);
 
-        if (thePos != null) {
-            return thePos.getLongitude();
-        } else {
-            return null;
-        }
-    }
-    
-    /*
-     * @param - the key of the position searched for
-     * @return - latitude corresponding to the key or null
-     */
-    synchronized String getLatitude(String key) {
+    synchronized Position getPosition(String key) {
         Position thePos = theMap.get(key);
-
-        if (thePos != null) {
-            return thePos.getLatitude();
-        } else {
-            return null;
-        }
+        return thePos;
     }
 }

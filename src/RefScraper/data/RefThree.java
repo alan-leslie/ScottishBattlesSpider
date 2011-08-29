@@ -77,6 +77,29 @@ public class RefThree implements Comparable {
         if (asKML) {
             ps.print("<Placemark>");
             ps.println();
+            ps.print("<name>");
+            ps.println();
+            ps.print(theName);
+            ps.println();
+            ps.print("</name>");
+            ps.println();
+            ps.print("<description>");
+            ps.println();
+
+            if (theURL != null) {
+                ps.print("&lt;p&gt;");
+                ps.println();
+                ps.print("&lt;a href=\"");
+                ps.print(theURL);
+                ps.print("\"&gt; more info&gt;&gt;&gt;");
+                ps.print("&lt;/a&gt;");
+                ps.println();
+                ps.print("&lt;/p&gt;");
+                ps.println();
+            }
+
+            ps.print("</description>");
+            ps.println();
 
             if (thePeriod.hasDuration()) {
                 ps.print("<TimeSpan>");
@@ -87,26 +110,36 @@ public class RefThree implements Comparable {
                 ps.print(thePeriod.getEndDate().toString());
                 ps.print("</end>");
                 ps.print("</TimeSpan>");
+                ps.println();
             } else {
                 ps.print("<TimeStamp>");
                 ps.print("<when>");
                 ps.print(thePeriod.getStartDate().toString());
                 ps.print("</when>");
                 ps.print("</TimeStamp>");
+                ps.println();
             }
+
+            ps.print("<Point>");
+            ps.println();
+            ps.print("<coordinates>");
+            ps.print(thePosition.getLongitudeDD());
+            ps.print(",");
+            ps.print(thePosition.getLatitudeDD());
+            ps.print("</coordinates>");
+            ps.println();
+            ps.print("</Point>");
+            ps.println();
+            ps.print("</Placemark>");
             ps.println();
         } else {
             ps.print("<event ");
             ps.print("start=\"");
             ps.print(thePeriod.getStartDate().toString());
             ps.print("\" ");
-
-            Date theEndDate = thePeriod.getEndDate();
-
-            if (theEndDate != null
-                    && theEndDate.after(thePeriod.getStartDate())) {
+            if (thePeriod.hasDuration()) {
                 ps.print("end=\"");
-                ps.print(theEndDate.toString());
+                ps.print(thePeriod.getEndDate().toString());
                 ps.print("\" ");
             }
 
@@ -114,46 +147,6 @@ public class RefThree implements Comparable {
             ps.print(theName);
             ps.print("\">");
             ps.println();
-        }
-
-        ps.print("<name>");
-        ps.println();
-        ps.print(theName);
-        ps.println();
-        ps.print("</name>");
-        ps.println();
-        ps.print("<description>");
-        ps.println();
-
-        if (theURL != null) {
-            ps.print("&lt;p&gt;");
-            ps.println();
-            ps.print("&lt;a href=\"");
-            ps.print(theURL);
-            ps.print("\"&gt; more info&gt;&gt;&gt;");
-            ps.print("&lt;/a&gt;");
-            ps.println();
-            ps.print("&lt;/p&gt;");
-            ps.println();
-        }
-
-        ps.print("</description>");
-        ps.println();
-        ps.print("<Point>");
-        ps.println();
-        ps.print("<coordinates>");
-        ps.print(thePosition.getLongitudeDD());
-        ps.print(",");
-        ps.print(thePosition.getLatitudeDD());
-        ps.print("</coordinates>");
-        ps.println();
-        ps.print("</Point>");
-        ps.println();
-
-        if (asKML) {
-            ps.print("</Placemark>");
-            ps.println();
-        } else {
             ps.print("</event>");
             ps.println();
         }
@@ -188,15 +181,11 @@ public class RefThree implements Comparable {
         // try to recover if data is only partially set
         if ((isPeriodSet() || isPositionSet()) && !(isPeriodSet() && isPositionSet())) {
             if (!isPeriodSet()) {
-                Date theStartDate = PeriodMap.getInstance().getStartDate(getId());
-                Date theEndDate = PeriodMap.getInstance().getEndDate(getId());
-                thePeriod = new Period(theStartDate, theEndDate);
+                thePeriod = PeriodMap.getInstance().getPeriod(getId());
             }
 
             if (!isPositionSet()) {
-                String theLatitude = PositionMap.getInstance().getLatitude(getId());
-                String theLongitude = PositionMap.getInstance().getLongitude(getId());
-                thePosition = new Position(theLatitude, theLongitude);
+                thePosition = PositionMap.getInstance().getPosition(getId());
             }
         }
 
