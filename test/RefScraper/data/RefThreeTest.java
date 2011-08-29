@@ -22,7 +22,7 @@ public class RefThreeTest {
      * 
      */
     @Test
-    public void testRefThree() {
+    public void testRefThreeNamur() {
         String theTitle = "Siege of Namur";
         String theHREF = "http://en.wikipedia.org/wiki/Siege_of_Namur_(1695)";
 
@@ -53,7 +53,74 @@ public class RefThreeTest {
         assert(theLatAsFloat > 50.0 && theLatAsFloat < 51.0);
         assert(theLongAsFloat > 4.0 && theLongAsFloat < 5.0);
     }
+    
+    /**
+     * 
+     */
+    @Test
+    public void testRefThreeAncrum() {
+        String theTitle = "Battle of Ancrum Moor";
+        String theHREF = "http://en.wikipedia.org/wiki/Battle_of_Ancrum_Moor";
 
+        RefThree theTestRef = new RefThree(theTitle, theHREF, theLogger);
+        boolean completed = theTestRef.complete();
+        
+        assertEquals(true, completed);
+        
+        Period thePeriod = theTestRef.getPeriod();
+
+        assertEquals(false, thePeriod.hasDuration());
+        Calendar startDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        startDate.setTime(thePeriod.getStartDate());
+        assertEquals(1545, startDate.get(Calendar.YEAR));
+        assertEquals(Calendar.FEBRUARY, startDate.get(Calendar.MONTH));
+        assertEquals(27, startDate.get(Calendar.DAY_OF_MONTH));
+       
+        Position thePosition = theTestRef.getPosition();
+        String theLat = thePosition.getLatitudeDD();
+        String theLong = thePosition.getLongitudeDD();
+        float theLatAsFloat = Float.parseFloat(theLat);
+        float theLongAsFloat = Float.parseFloat(theLong);
+        assert(theLatAsFloat > 55.0 && theLatAsFloat < 56.0);
+        assert(theLongAsFloat > -3.0 && theLongAsFloat < -2.0);
+    }
+ 
+    /**
+     * 
+     */
+    @Test
+    public void testRefThreeStanhope() {
+        String theTitle = "Battle of Stanhope Park";
+        String theHREF = "http://en.wikipedia.org/wiki/Battle_of_Stanhope_Park";
+
+        RefThree theTestRef = new RefThree(theTitle, theHREF, theLogger);
+        boolean completed = theTestRef.complete();
+        
+        assertEquals(true, completed);
+        
+        Period thePeriod = theTestRef.getPeriod();
+
+        assertEquals(true, thePeriod.hasDuration());
+        Calendar startDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        startDate.setTime(thePeriod.getStartDate());
+        Calendar endDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        endDate.setTime(thePeriod.getEndDate());
+        assertEquals(1327, startDate.get(Calendar.YEAR));
+        assertEquals(Calendar.AUGUST, startDate.get(Calendar.MONTH));
+        assertEquals(3, startDate.get(Calendar.DAY_OF_MONTH));
+        assertEquals(1327, endDate.get(Calendar.YEAR));
+        assertEquals(Calendar.AUGUST, endDate.get(Calendar.MONTH));
+        assertEquals(4, endDate.get(Calendar.DAY_OF_MONTH));      
+       
+        Position thePosition = theTestRef.getPosition();
+        String theLat = thePosition.getLatitudeDD();
+        String theLong = thePosition.getLongitudeDD();
+        float theLatAsFloat = Float.parseFloat(theLat);
+        float theLongAsFloat = Float.parseFloat(theLong);
+        assert(theLatAsFloat > 54.0 && theLatAsFloat < 55.0);
+        assert(theLongAsFloat > -3.0 && theLongAsFloat < -2.0);
+    }
+    
     /**
      *
      * @return - valid logger (single file).

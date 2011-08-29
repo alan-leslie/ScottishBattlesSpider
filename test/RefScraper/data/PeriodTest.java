@@ -56,6 +56,72 @@ public class PeriodTest {
      * 
      */
     @Test
+    public void testPeriodMonthsWithTo() {
+        Period thePeriod = Period.getRealPeriod("1 July to 2 August 2001");
+        
+        assertEquals(false, thePeriod == null);
+
+        assertEquals(true, thePeriod.hasDuration());
+        Calendar startDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        startDate.setTime(thePeriod.getStartDate());
+        Calendar endDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        endDate.setTime(thePeriod.getEndDate());
+        assertEquals(2001, startDate.get(Calendar.YEAR));
+        assertEquals(2001, endDate.get(Calendar.YEAR));
+        assertEquals(Calendar.JULY, startDate.get(Calendar.MONTH));
+        assertEquals(Calendar.AUGUST, endDate.get(Calendar.MONTH));
+        assertEquals(1, startDate.get(Calendar.DAY_OF_MONTH));
+        assertEquals(2, endDate.get(Calendar.DAY_OF_MONTH));
+    }
+    
+    /**
+     * 
+     */
+    @Test
+    public void testPeriodSingleMonth() {
+        Period thePeriod = Period.getRealPeriod("August 1-2, 2001");
+        
+        assertEquals(false, thePeriod == null);
+
+        assertEquals(true, thePeriod.hasDuration());
+        Calendar startDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        startDate.setTime(thePeriod.getStartDate());
+        Calendar endDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        endDate.setTime(thePeriod.getEndDate());
+        assertEquals(2001, startDate.get(Calendar.YEAR));
+        assertEquals(2001, endDate.get(Calendar.YEAR));
+        assertEquals(Calendar.AUGUST, startDate.get(Calendar.MONTH));
+        assertEquals(Calendar.AUGUST, endDate.get(Calendar.MONTH));
+        assertEquals(1, startDate.get(Calendar.DAY_OF_MONTH));
+        assertEquals(2, endDate.get(Calendar.DAY_OF_MONTH));
+    }
+    
+   /**
+     * 
+     */
+    @Test
+    public void testPeriodSingleMonth2() {
+        Period thePeriod = Period.getRealPeriod("1-2 July 2001");
+        
+        assertEquals(false, thePeriod == null);
+
+        assertEquals(true, thePeriod.hasDuration());
+        Calendar startDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        startDate.setTime(thePeriod.getStartDate());
+        Calendar endDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        endDate.setTime(thePeriod.getEndDate());
+        assertEquals(2001, startDate.get(Calendar.YEAR));
+        assertEquals(2001, endDate.get(Calendar.YEAR));
+        assertEquals(Calendar.JULY, startDate.get(Calendar.MONTH));
+        assertEquals(Calendar.JULY, endDate.get(Calendar.MONTH));
+        assertEquals(1, startDate.get(Calendar.DAY_OF_MONTH));
+        assertEquals(2, endDate.get(Calendar.DAY_OF_MONTH));
+    }
+    
+    /**
+     * 
+     */
+    @Test
     public void testPeriodFullDates() {
         Period thePeriod = Period.getRealPeriod("1 July 1981-2 August 2001");
         
@@ -79,8 +145,9 @@ public class PeriodTest {
      */
     @Test
     public void testPeriodGetDates() {
-        Date theDate = Period.getDate("1 July 1981");
-        Date theMonthFirst = Period.getDate("November 12, 1984");
+        Date theDate = Period.getDate("1st July 1981");
+        Date theMonthFirst = Period.getDate("November 12th, 1984");
+        Date theDayMonthFirst = Period.getDate("12 November, 1984");
         Date theDMY = Period.getDate("9/1/1984");
 //        Date theMDY = Period.getDate("1984");
         Date theMCommaY = Period.getDate("January, 1984");
@@ -89,6 +156,7 @@ public class PeriodTest {
         
         assertEquals(false, theDate == null);
         assertEquals(false, theMonthFirst == null);
+        assertEquals(false, theDayMonthFirst == null);
         assertEquals(false, theDMY == null);
         assertEquals(false, theMCommaY == null);
         assertEquals(false, theMY == null);
@@ -98,6 +166,8 @@ public class PeriodTest {
         firstDate.setTime(theDate);
         Calendar monthFirstDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
         monthFirstDate.setTime(theMonthFirst);
+        Calendar dayMonthFirstDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        dayMonthFirstDate.setTime(theDayMonthFirst);        
         Calendar dMYDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
         dMYDate.setTime(theDMY);
         Calendar MCommaYDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
@@ -113,6 +183,9 @@ public class PeriodTest {
         assertEquals(1984, monthFirstDate.get(Calendar.YEAR));
         assertEquals(Calendar.NOVEMBER, monthFirstDate.get(Calendar.MONTH));
         assertEquals(12, monthFirstDate.get(Calendar.DAY_OF_MONTH));
+        assertEquals(1984, dayMonthFirstDate.get(Calendar.YEAR));
+        assertEquals(Calendar.NOVEMBER, dayMonthFirstDate.get(Calendar.MONTH));
+        assertEquals(12, dayMonthFirstDate.get(Calendar.DAY_OF_MONTH));
         assertEquals(1984, monthFirstDate.get(Calendar.YEAR));
         assertEquals(Calendar.NOVEMBER, monthFirstDate.get(Calendar.MONTH));
         assertEquals(12, monthFirstDate.get(Calendar.DAY_OF_MONTH));
