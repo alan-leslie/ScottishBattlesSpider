@@ -46,11 +46,18 @@ public class Main {
         int poolSize = Integer.parseInt(poolSizeStr);
         String theURL = properties.getProperty("StartURL", "http://en.wikipedia.org/wiki/Category:Battles_involving_Scotland");
         String theOutputDir = properties.getProperty("OutputDir", ".");
+        String theAsKML = properties.getProperty("AsKML", "true");
+        
+        boolean asKML = true;
+        
+        if(!theAsKML.equalsIgnoreCase("true")){
+            asKML = false;
+        }
 
         Logger theLogger = Main.makeLogger();
         RefScraperUI theUI = new RefScraperUI();
         Controller theController = new Controller(theURL,
-                poolSize, theLogger);
+                poolSize, asKML, theLogger);
 
         theUI.setOutputDir(theOutputDir);
         theUI.setController(theController);

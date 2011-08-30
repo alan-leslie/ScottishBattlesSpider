@@ -27,6 +27,7 @@ public class Controller extends Thread {
     private final Logger theLogger;
     private final RefThrees theRefs;
     private final String theURL;
+    private final boolean asKMLFlag;
     private ScrapeProgressDisplay theProgressDisplay;
 
     /**
@@ -41,10 +42,12 @@ public class Controller extends Thread {
      */
     public Controller(String url,
             int poolSize,
+            boolean asKML,
             Logger logger) {
         thePoolSize = poolSize;
         theLogger = logger;
         theRefs = new RefThrees(theLogger);
+        asKMLFlag = asKML;
         theURL = url;
     }
 
@@ -154,6 +157,6 @@ public class Controller extends Thread {
      * @param outputDir 
      */
     public void outputResults(String outputDir) {
-        theRefs.outputAsXML(outputDir, true);
+        theRefs.outputAsXML(outputDir, asKMLFlag);
     }
 }
