@@ -196,56 +196,32 @@ public class WikipediaDetailPage {
      * @return - valid position or null if not obtainable
      */
     private Position getLocationFromSummary(NodeList summaryData) {
-        int theLength = summaryData.getLength();
-        boolean locationFound = false;
+        Node theValueNode = getValueNodeFromSummary(theSummary, "Location");
+
+//        int theLength = summaryData.getLength();
+//        boolean locationFound = false;
         Position summaryPosition = null;
 
         try {
-            for (int i = 0; i < theLength && !locationFound; ++i) {
-                XPath rowXpath = XPathFactory.newInstance().newXPath();
-                NodeList theRows = (NodeList) rowXpath.evaluate("./td/table/tr", summaryData.item(i), XPathConstants.NODESET);
+            if (theValueNode != null) {
+                XPath anchorsXpath = XPathFactory.newInstance().newXPath();
+                NodeList theAnchors = (NodeList) anchorsXpath.evaluate("./span/a", theValueNode, XPathConstants.NODESET);
 
-                if (theRows != null) {
-                    int theRowsLength = theRows.getLength();
+                if (theAnchors != null) {
+                    int theAnchorsLength = theAnchors.getLength();
 
-                    for (int j = 0; j < theRowsLength; ++j) {
-                        Node theRowNode = theRows.item(j);
+                    if (theAnchorsLength > 0) {
+                        Element thePlaceElement = (Element) theAnchors.item(0);
+                        String thePlaceHREF = thePlaceElement.getAttribute("href");
+                        if (thePlaceHREF.indexOf("http://") != 0) {
+                            thePlaceHREF = WikipediaDetailPage.getBaseURL() + thePlaceHREF;
+                        }
 
-                        XPath headerXpath = XPathFactory.newInstance().newXPath();
-                        Node theHeaderNode = (Node) rowXpath.evaluate("./th", theRowNode, XPathConstants.NODE);
-
-                        String theText = theHeaderNode.getTextContent();
-
-                        if (theText != null
-                                && theText.equalsIgnoreCase("Location")) {
-                            XPath detailXpath = XPathFactory.newInstance().newXPath();
-                            Node theDetail = (Node) headerXpath.evaluate("./td", theRowNode, XPathConstants.NODE);
-
-                            if (theDetail != null) {
-                                XPath anchorsXpath = XPathFactory.newInstance().newXPath();
-                                NodeList theAnchors = (NodeList) headerXpath.evaluate("./span/a", theDetail, XPathConstants.NODESET);
-
-                                if (theAnchors != null) {
-                                    int theAnchorsLength = theAnchors.getLength();
-
-                                    if (theAnchorsLength > 0) {
-                                        Element thePlaceElement = (Element) theAnchors.item(0);
-                                        String thePlaceHREF = thePlaceElement.getAttribute("href");
-                                        if (thePlaceHREF.indexOf("http://") != 0) {
-                                            thePlaceHREF = WikipediaDetailPage.getBaseURL() + thePlaceHREF;
-                                        }
-
-                                        try {
-                                            URL theLocationRef = new URL(thePlaceHREF);
-                                            summaryPosition = getLocationFromRef(theLocationRef);
-                                        } catch (MalformedURLException ex) {
-                                            theLogger.log(Level.SEVERE, "Unable to format place URL", ex);
-                                        }
-                                    }
-                                }
-                            }
-
-                            locationFound = true;
+                        try {
+                            URL theLocationRef = new URL(thePlaceHREF);
+                            summaryPosition = getLocationFromRef(theLocationRef);
+                        } catch (MalformedURLException ex) {
+                            theLogger.log(Level.SEVERE, "Unable to format place URL", ex);
                         }
                     }
                 }
@@ -275,53 +251,21 @@ public class WikipediaDetailPage {
      */
     private Period getDateFromSummary(NodeList summaryData) {
         Period summaryPeriod = null;
+        Node theValueNode = getValueNodeFromSummary(theSummary, "Date");
 
-        try {
-            int theLength = summaryData.getLength();
-            boolean dateFound = false;
+        if (theValueNode != null) {
+            String detailText = theValueNode.getTextContent();
+            summaryPeriod = Period.getRealPeriod(detailText);
 
-            for (int i = 0; i < theLength && !dateFound; ++i) {
-                XPath rowXpath = XPathFactory.newInstance().newXPath();
-                NodeList theRows = (NodeList) rowXpath.evaluate("./td/table/tr", summaryData.item(i), XPathConstants.NODESET);
+            if (summaryPeriod == null) {
+                Date theDate = Period.getDate(detailText);
 
-                if (theRows != null) {
-                    int theRowsLength = theRows.getLength();
-
-                    for (int j = 0; j < theRowsLength; ++j) {
-                        Node theRowNode = theRows.item(j);
-
-                        XPath headerXpath = XPathFactory.newInstance().newXPath();
-                        Node theHeaderNode = (Node) rowXpath.evaluate("./th", theRowNode, XPathConstants.NODE);
-
-                        String theText = theHeaderNode.getTextContent();
-
-                        if (theText != null
-                                && theText.equalsIgnoreCase("Date")) {
-                            XPath detailXpath = XPathFactory.newInstance().newXPath();
-                            Node theDetail = (Node) headerXpath.evaluate("./td", theRowNode, XPathConstants.NODE);
-
-                            if (theDetail != null) {
-                                String detailText = theDetail.getTextContent();
-                                summaryPeriod = Period.getRealPeriod(detailText);
-
-                                if (summaryPeriod == null) {
-                                    Date theDate = Period.getDate(detailText);
-
-                                    if (theDate != null) {
-                                        summaryPeriod = new Period(theDate, theDate);
-                                    } else {
-                                        theLogger.log(Level.WARNING, "Cannot get date");
-                                    }
-                                }
-                            }
-
-                            dateFound = true;
-                        }
-                    }
+                if (theDate != null) {
+                    summaryPeriod = new Period(theDate, theDate);
+                } else {
+                    theLogger.log(Level.WARNING, "Cannot get date");
                 }
             }
-        } catch (XPathExpressionException ex) {
-            theLogger.log(Level.SEVERE, null, ex);
         }
 
         return summaryPeriod;
@@ -342,5 +286,78 @@ public class WikipediaDetailPage {
         } else {
             return null;
         }
+    }
+
+    /**
+     * get the result from the summary
+     * @return - the result or "?" if not found
+     */
+    String getResult() {
+        String retVal = "?";
+
+        if (theSummary == null) {
+            theSummary = getSummary();
+        }
+
+        if (theSummary != null) {
+            Node theValueNode = getValueNodeFromSummary(theSummary, "Result");
+            if (theValueNode != null) {
+                retVal = theValueNode.getTextContent();
+            }
+        }
+
+        return retVal;
+    }
+
+    /**
+     * Try and get the node that contains the value for the summary data item
+     * with title dataName.
+     * The summary is a table so looking for a tr node that has a th of dataName
+     * @param summaryData 
+     * @param dataName 
+     * @return - valid Node or null if not found
+     */
+    private Node getValueNodeFromSummary(NodeList summaryData,
+            String dataName) {
+        Node dataValueNode = null;
+
+        try {
+            int theLength = summaryData.getLength();
+            boolean dataFound = false;
+
+            for (int i = 0; i < theLength && !dataFound; ++i) {
+                XPath rowXpath = XPathFactory.newInstance().newXPath();
+                NodeList theRows = (NodeList) rowXpath.evaluate("./td/table/tr", summaryData.item(i), XPathConstants.NODESET);
+
+                if (theRows != null) {
+                    int theRowsLength = theRows.getLength();
+
+                    for (int j = 0; j < theRowsLength; ++j) {
+                        Node theRowNode = theRows.item(j);
+
+                        XPath headerXpath = XPathFactory.newInstance().newXPath();
+                        Node theHeaderNode = (Node) rowXpath.evaluate("./th", theRowNode, XPathConstants.NODE);
+
+                        String theText = theHeaderNode.getTextContent();
+
+                        if (theText != null
+                                && theText.equalsIgnoreCase(dataName)) {
+                            XPath detailXpath = XPathFactory.newInstance().newXPath();
+                            Node theDetail = (Node) headerXpath.evaluate("./td", theRowNode, XPathConstants.NODE);
+
+                            if (theDetail != null) {
+                                dataValueNode = theDetail;
+                            }
+
+                            dataFound = true;
+                        }
+                    }
+                }
+            }
+        } catch (XPathExpressionException ex) {
+            theLogger.log(Level.SEVERE, null, ex);
+        }
+
+        return dataValueNode;
     }
 }

@@ -3,6 +3,8 @@ package RefScraper.data;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,6 +15,8 @@ import java.util.logging.Logger;
 public class RefThree implements Comparable {
 
     String theName;
+    private String dateString;
+    private String theResult;
     private Position thePosition;
     private URL theLocationRef;
     private URL thePlace;
@@ -61,6 +65,8 @@ public class RefThree implements Comparable {
             thePeriod = new Period(theOther.thePeriod.getStartDate(), theOther.thePeriod.getEndDate());
         }
         theURL = theOther.theURL;
+        theResult = theOther.theResult;
+        dateString = theOther.dateString;
         theLogger = theOther.theLogger;
     }
 
@@ -99,7 +105,9 @@ public class RefThree implements Comparable {
 
             ps.print("</description>");
             ps.println();
-
+            ps.print("<styleUrl>#exampleStyleMap</styleUrl>");
+            ps.println();
+        
             if (thePeriod.hasDuration()) {
                 ps.print("<TimeSpan>");
                 ps.print("<begin>");
@@ -119,6 +127,29 @@ public class RefThree implements Comparable {
                 ps.println();
             }
 
+            ps.print("<ExtendedData>");
+            ps.println();
+            ps.println("<Data name=\"Result\">");
+            ps.print("<value>");
+            ps.print(theResult);
+            ps.print("</value>");
+            ps.println();
+            ps.println("</Data>");
+            ps.println("<Data name=\"DateString\">");
+            ps.print("<value>");
+            ps.print(dateString);
+            ps.print("</value>");
+            ps.println();
+            ps.println("</Data>");
+            ps.println("<Data name=\"Url\">");
+            ps.print("<value>");
+            ps.print(theURL);
+            ps.print("</value>");
+            ps.println();
+            ps.println("</Data>");
+            ps.print("</ExtendedData>");
+            ps.println();
+ 
             ps.print("<Point>");
             ps.println();
             ps.print("<coordinates>");
@@ -177,6 +208,22 @@ public class RefThree implements Comparable {
     
    /**
      * 
+     * @return - the date as a string
+     */
+    public String getDateString() {
+        return dateString;
+    }   
+    
+   /**
+     * 
+     * @return - the result
+     */
+    public String getResult() {
+        return theResult;
+    }    
+    
+    /**
+     * 
      * @return - the position 
      */
     public Position getPosition() {
@@ -203,6 +250,13 @@ public class RefThree implements Comparable {
                 thePosition = PositionMap.getInstance().getPosition(getId());
             }
         }
+        
+        theResult = thePage.getResult();
+        
+        if(isPeriodSet()){
+            DateFormat ddMMMMYYYY = new SimpleDateFormat("dd MMMM yyyy");
+            dateString = ddMMMMYYYY.format(thePeriod.getStartDate());
+        }          
 
         if (isComplete()) {
             return true;
