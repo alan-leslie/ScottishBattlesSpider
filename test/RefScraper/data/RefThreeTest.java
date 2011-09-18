@@ -57,7 +57,7 @@ public class RefThreeTest {
         assert(theResult.equalsIgnoreCase("Allied victory"));
         
         String dateString = theTestRef.getDateString().trim();
-        assert(dateString.equalsIgnoreCase("02 July 1695"));
+        assert(dateString.equalsIgnoreCase("02 July-01 September 1695"));
     }
     
     /**
@@ -136,8 +136,52 @@ public class RefThreeTest {
         assert(theResult.equalsIgnoreCase("Scottish victory"));
         
         String dateString = theTestRef.getDateString().trim();
-        assert(dateString.equalsIgnoreCase("03 August 1327")); 
+        assert(dateString.equalsIgnoreCase("03-04 August 1327")); 
     }
+    
+    /**
+     * 
+     */
+    // unable to complete because cannot parse page
+    // todo - maybe convert to nekohtml for parsing
+//    @Test
+//    public void testRefThreeLanark() {
+//        String theTitle = "Action at Lanark";
+//        String theHREF = "http://en.wikipedia.org/wiki/Action_at_Lanark";
+//
+//        RefThree theTestRef = new RefThree(theTitle, theHREF, theLogger);
+//        boolean completed = theTestRef.complete();
+//        
+//        assertEquals(true, completed);
+//        
+//        Period thePeriod = theTestRef.getPeriod();
+//
+//        assertEquals(false, thePeriod.hasDuration());
+//        Calendar startDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+//        startDate.setTime(thePeriod.getStartDate());
+//        Calendar endDate = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+//        endDate.setTime(thePeriod.getEndDate());
+//        assertEquals(1297, startDate.get(Calendar.YEAR));
+//        assertEquals(Calendar.MAY, startDate.get(Calendar.MONTH));
+//        assertEquals(1, startDate.get(Calendar.DAY_OF_MONTH));
+//        assertEquals(1297, endDate.get(Calendar.YEAR));
+//        assertEquals(Calendar.MAY, endDate.get(Calendar.MONTH));
+//        assertEquals(1, endDate.get(Calendar.DAY_OF_MONTH));      
+//       
+//        Position thePosition = theTestRef.getPosition();
+//        String theLat = thePosition.getLatitudeDD();
+//        String theLong = thePosition.getLongitudeDD();
+//        float theLatAsFloat = Float.parseFloat(theLat);
+//        float theLongAsFloat = Float.parseFloat(theLong);
+//        assert(theLatAsFloat > 55.0 && theLatAsFloat < 56.0);
+//        assert(theLongAsFloat > -4.0 && theLongAsFloat < -3.0);
+//        
+//        String theResult = theTestRef.getResult();
+//        assert(theResult.equalsIgnoreCase("Scottish victory"));
+//        
+//        String dateString = theTestRef.getDateString().trim();
+//        assert(dateString.equalsIgnoreCase("01 May 1297")); 
+//    }
     
     /**
      *

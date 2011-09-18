@@ -79,18 +79,18 @@ public class Period {
      */
     public static Period getRealPeriod(String dateString) {
         Pattern p = Pattern.compile("[^A-Za-z_0-9 ]+");
-        String[] theParts = {""};      
+        String[] theParts = {""};
         String theTestString = dateString;
-        
-        if(theTestString.contains("-")){
-          theParts = dateString.split("-");
+
+        if (theTestString.contains("-")) {
+            theParts = dateString.split("-");
         }
-        
-        if(theTestString.contains(" to ")){
-          theParts = dateString.split(" to ");
+
+        if (theTestString.contains(" to ")) {
+            theParts = dateString.split(" to ");
         }
-        
-        if (theParts.length < 2){
+
+        if (theParts.length < 2) {
             theParts = p.split(dateString);
         }
 
@@ -99,12 +99,12 @@ public class Period {
 
         if (hasRealPeriod) {
             String theFirst = theParts[0];
-            
-            if(theFirst.contains(" of ")){
+
+            if (theFirst.contains(" of ")) {
                 int ofIndex = theFirst.indexOf(" of ");
                 theFirst = theFirst.substring(ofIndex + 4);
             }
-            
+
             String theSecond = theParts[1];
             DateFormat theDayMonthFormat = new SimpleDateFormat("dd MMMM");
             theDayMonthFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -143,7 +143,7 @@ public class Period {
                     // handled by leaving the return value as null
                 }
             }
-            
+
             if (realPeriod == null) {
                 try {
                     Date theStartDate = theMonthDayFormat.parse(theFirst);
@@ -160,7 +160,7 @@ public class Period {
                     // handled by leaving the return value as null
                 }
             }
-            
+
             if (realPeriod == null) {
                 try {
                     Date theStartDate = theDayFormat.parse(theFirst);
@@ -177,9 +177,9 @@ public class Period {
                     // handled by leaving the return value as null
                 }
             }
-            
+
             if (realPeriod == null) {
-                if(theFirst.length() < 5 && theSecond.length() < 5){
+                if (theFirst.length() < 5 && theSecond.length() < 5) {
                     try {
                         Date theStartDate = theYearFormat.parse(theFirst);
                         Date theEndDate = theYearFormat.parse(theSecond);
@@ -205,36 +205,36 @@ public class Period {
     // note that formatters need to be in order of most specific first
     public static Date getDate(String dateString) {
         Date retVal = null;
-        
+
         String theTestString = dateString;
-        
-        if(theTestString.contains("th")){
-            theTestString = theTestString.replaceFirst("th", "");            
+
+        if (theTestString.contains("th")) {
+            theTestString = theTestString.replaceFirst("th", "");
         }
-        
-        if(theTestString.contains("nd")){
-            theTestString = theTestString.replaceFirst("nd", "");            
-        }          
-        
-        if(theTestString.contains("rd")){
-            theTestString = theTestString.replaceFirst("rd", "");            
-        } 
-        
-        if(theTestString.contains(", ")){
-            theTestString = theTestString.replaceFirst(", ", " ");            
-        } 
-                
-        if(theTestString.contains("st")){
+
+        if (theTestString.contains("nd")) {
+            theTestString = theTestString.replaceFirst("nd", "");
+        }
+
+        if (theTestString.contains("rd")) {
+            theTestString = theTestString.replaceFirst("rd", "");
+        }
+
+        if (theTestString.contains(", ")) {
+            theTestString = theTestString.replaceFirst(", ", " ");
+        }
+
+        if (theTestString.contains("st")) {
             int indexOfSt = theTestString.indexOf("st");
-            
-            if(indexOfSt > 0){
-                char prevChar = theTestString.charAt(indexOfSt -1);
-                if(Character.isDigit(prevChar)){
-                    theTestString = theTestString.replaceFirst("st", ""); 
+
+            if (indexOfSt > 0) {
+                char prevChar = theTestString.charAt(indexOfSt - 1);
+                if (Character.isDigit(prevChar)) {
+                    theTestString = theTestString.replaceFirst("st", "");
                 }
             }
-        } 
-        
+        }
+
         List<DateFormat> theFormatters = new ArrayList<DateFormat>();
         SimpleDateFormat theDateFormat = new SimpleDateFormat("dd MMMM yyyy");
         theDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -275,7 +275,6 @@ public class Period {
      * 13 August 1970
      * @return - a date or null if the date format is not found
      */
-    // todo cut this into as few patterns as possible
     public static Date extractDateFromText(String paragraphText) {
         Date retVal = null;
         List<Pattern> theDatePatterns = new ArrayList<Pattern>();
@@ -306,6 +305,43 @@ public class Period {
                     retVal = Period.getDate(matchingString);
                 }
             }
+        }
+
+        return retVal;
+    }
+
+    /**
+     * @return - date or period in long format e.g. 03-04 August 1927
+     */
+    String asLongString() {
+        String retVal = "";
+        DateFormat ddMMMMYYYY = new SimpleDateFormat("dd MMMM yyyy");
+        DateFormat ddMMMM = new SimpleDateFormat("dd MMMM");
+        DateFormat dd = new SimpleDateFormat("dd");
+
+        if (hasDuration()) {
+            String thePrefix = "";
+
+            Calendar theStartDateCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+            theStartDateCal.setTime(theStartDate);
+            Calendar theEndDateCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+            theEndDateCal.setTime(theEndDate);
+
+            if (theStartDateCal.get(Calendar.YEAR) != theEndDateCal.get(Calendar.YEAR)) {
+                thePrefix = ddMMMMYYYY.format(getStartDate());
+            } else {
+                if (theStartDateCal.get(Calendar.MONTH) != theEndDateCal.get(Calendar.MONTH)) {
+                    thePrefix = ddMMMM.format(getStartDate());
+                } else {
+                    thePrefix = dd.format(getStartDate());
+                }
+            }
+
+            thePrefix = thePrefix + "-";
+
+            retVal = thePrefix + ddMMMMYYYY.format(getEndDate());
+        } else {
+            retVal = ddMMMMYYYY.format(getStartDate());
         }
 
         return retVal;

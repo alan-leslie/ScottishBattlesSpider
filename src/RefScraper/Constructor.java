@@ -78,10 +78,14 @@ public class Constructor implements Callable<String> {
         List<String> linksAdded = new ArrayList<String>();
 
         for (int i = 0; i < target.size(); ++i) {
-            theLogger.log(Level.INFO, "Constructing fom page {0}", target.get(i));
-            WikipediaListPage thePage = new WikipediaListPage(target.get(i), theLogger);
-            processFile(thePage, linksAdded);
-            theLogger.log(Level.INFO, "Constructing fom page {0} - complete", target.get(i));
+            try {
+                theLogger.log(Level.INFO, "Constructing fom page {0}", target.get(i));
+                WikipediaListPage thePage = new WikipediaListPage(target.get(i), theLogger);
+                processFile(thePage, linksAdded);
+                theLogger.log(Level.INFO, "Constructing fom page {0} - complete", target.get(i));
+            } catch (Exception e) {
+                theLogger.log(Level.SEVERE, "Constructing fom page {0} - failed", target.get(i));
+            }
         }
 
         return "Complete";

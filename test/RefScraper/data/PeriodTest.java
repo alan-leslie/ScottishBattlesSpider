@@ -151,7 +151,7 @@ public class PeriodTest {
         Date theDMY = Period.getDate("9/1/1984");
 //        Date theMDY = Period.getDate("1984");
         Date theMCommaY = Period.getDate("January, 1984");
-        Date theMY = Period.getDate("February 1984");
+        Date theMY = Period.getDate("May 1297");
         Date theYear = Period.getDate("1984");
         
         assertEquals(false, theDate == null);
@@ -194,8 +194,8 @@ public class PeriodTest {
         assertEquals(1, dMYDate.get(Calendar.DAY_OF_MONTH));
         assertEquals(1984, MCommaYDate.get(Calendar.YEAR));
         assertEquals(Calendar.JANUARY, MCommaYDate.get(Calendar.MONTH));
-        assertEquals(1984, MYDate.get(Calendar.YEAR));
-        assertEquals(Calendar.FEBRUARY, MYDate.get(Calendar.MONTH));
+        assertEquals(1297, MYDate.get(Calendar.YEAR));
+        assertEquals(Calendar.MAY, MYDate.get(Calendar.MONTH));
         assertEquals(1984, yearDate.get(Calendar.YEAR));
    }
     

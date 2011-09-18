@@ -1,10 +1,12 @@
 package RefScraper.data;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -13,6 +15,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Model of wikipedia detail page (contains details of period position).
@@ -30,10 +33,13 @@ public class WikipediaDetailPage {
     /**
      * Constructs model of wikipedia detailpage.
      * @param newURL 
-     * @param logger  
+     * @param logger
+     * @throws IOException
+     * @throws ParserConfigurationException
+     * @throws SAXException  
      */
     public WikipediaDetailPage(URL newURL,
-            Logger logger) {
+            Logger logger) throws IOException, ParserConfigurationException, SAXException {
         theURL = newURL;
         theLogger = logger;
         HTMLPageParser theParser = new HTMLPageParser(theLogger);
@@ -239,8 +245,15 @@ public class WikipediaDetailPage {
      * @return - valid position or null if unobtainable
      */
     private Position getLocationFromRef(URL locationRef) {
-        WikipediaDetailPage thePage = new WikipediaDetailPage(locationRef, theLogger);
-        Position refPosition = thePage.getPageCoords();
+        Position refPosition = null;
+
+        try {
+            WikipediaDetailPage thePage = new WikipediaDetailPage(locationRef, theLogger);
+            refPosition = thePage.getPageCoords();
+        } catch (Exception e) {
+            theLogger.log(Level.SEVERE, "Cannot get location page", e);
+        }
+
         return refPosition;
     }
 

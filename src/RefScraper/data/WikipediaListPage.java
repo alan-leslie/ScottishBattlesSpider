@@ -1,10 +1,12 @@
 package RefScraper.data;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
@@ -12,6 +14,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Model of wikipedia page that contains lists of items to be processed
@@ -29,10 +32,13 @@ public class WikipediaListPage {
     /**
      * Constructs model of wikipedia list page.
      * @param newURL 
-     * @param logger  
+     * @param logger
+     * @throws IOException
+     * @throws ParserConfigurationException
+     * @throws SAXException  
      */
     public WikipediaListPage(URL newURL,
-            Logger logger) {
+            Logger logger) throws IOException, ParserConfigurationException, SAXException {
         theURL = newURL;
         theLogger = logger;
         HTMLPageParser theParser = new HTMLPageParser(theLogger);

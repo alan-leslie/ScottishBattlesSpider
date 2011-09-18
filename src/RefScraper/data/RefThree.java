@@ -3,8 +3,6 @@ package RefScraper.data;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -107,7 +105,7 @@ public class RefThree implements Comparable {
             ps.println();
             ps.print("<styleUrl>#exampleStyleMap</styleUrl>");
             ps.println();
-        
+
             if (thePeriod.hasDuration()) {
                 ps.print("<TimeSpan>");
                 ps.print("<begin>");
@@ -149,7 +147,7 @@ public class RefThree implements Comparable {
             ps.println("</Data>");
             ps.print("</ExtendedData>");
             ps.println();
- 
+
             ps.print("<Point>");
             ps.println();
             ps.print("<coordinates>");
@@ -198,30 +196,30 @@ public class RefThree implements Comparable {
         return theHREF;
     }
 
-   /**
+    /**
      * 
      * @return - the period
      */
     public Period getPeriod() {
         return thePeriod;
     }
-    
-   /**
+
+    /**
      * 
      * @return - the date as a string
      */
     public String getDateString() {
         return dateString;
-    }   
-    
-   /**
+    }
+
+    /**
      * 
      * @return - the result
      */
     public String getResult() {
         return theResult;
-    }    
-    
+    }
+
     /**
      * 
      * @return - the position 
@@ -229,34 +227,37 @@ public class RefThree implements Comparable {
     public Position getPosition() {
         return thePosition;
     }
-    
+
     /**
      * attempt to fill in all of the placemark data
      * @return - whether all of the required data has been completed
      */
     public boolean complete() {
-        WikipediaDetailPage thePage = new WikipediaDetailPage(theURL, theLogger);
+        try {
+            WikipediaDetailPage thePage = new WikipediaDetailPage(theURL, theLogger);
 
-        thePosition = thePage.getPosition();
-        thePeriod = thePage.getPeriod();
+            thePosition = thePage.getPosition();
+            thePeriod = thePage.getPeriod();
 
-        // try to recover if data is only partially set
-        if ((isPeriodSet() || isPositionSet()) && !(isPeriodSet() && isPositionSet())) {
-            if (!isPeriodSet()) {
-                thePeriod = PeriodMap.getInstance().getPeriod(getId());
+            // try to recover if data is only partially set
+            if ((isPeriodSet() || isPositionSet()) && !(isPeriodSet() && isPositionSet())) {
+                if (!isPeriodSet()) {
+                    thePeriod = PeriodMap.getInstance().getPeriod(getId());
+                }
+
+                if (!isPositionSet()) {
+                    thePosition = PositionMap.getInstance().getPosition(getId());
+                }
             }
 
-            if (!isPositionSet()) {
-                thePosition = PositionMap.getInstance().getPosition(getId());
+            theResult = thePage.getResult();
+
+            if (isPeriodSet()) {
+                dateString = thePeriod.asLongString();
             }
+        } catch (Exception exc) {
+            theLogger.log(Level.SEVERE, "Unable to parse: " + getId(), exc);
         }
-        
-        theResult = thePage.getResult();
-        
-        if(isPeriodSet()){
-            DateFormat ddMMMMYYYY = new SimpleDateFormat("dd MMMM yyyy");
-            dateString = ddMMMMYYYY.format(thePeriod.getStartDate());
-        }          
 
         if (isComplete()) {
             return true;

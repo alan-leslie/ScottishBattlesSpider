@@ -1,5 +1,6 @@
 package RefScraper.data;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -8,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.lobobrowser.html.UserAgentContext;
 import org.lobobrowser.html.parser.HtmlParser;
 import org.lobobrowser.html.test.SimpleUserAgentContext;
@@ -17,6 +19,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.xml.sax.SAXException;
 
 /**
  * Parses HTML pages using CORBA parser
@@ -34,7 +37,7 @@ public class HTMLPageParser {
      * @param - theURL the page to be parsed
      * @return - parsed html of the page
      */
-    Document getParsedPage(URL theURL) {
+    Document getParsedPage(URL theURL) throws IOException, ParserConfigurationException, SAXException {
         Document theResult = null;
 
         if (theURL == null) {
@@ -62,9 +65,9 @@ public class HTMLPageParser {
                     theResult = builder.newDocument();
                     HtmlParser parser = new HtmlParser(uacontext, theResult);
                     parser.parse(reader);
-                } catch (Exception theException) {
-                    theResult = null;
-                    theLogger.log(Level.SEVERE, "Exception on parsing ", theException);
+//                } catch (Exception theException) {
+//                    theResult = null;
+//                    theLogger.log(Level.SEVERE, "Exception on parsing ", theException);
                 } finally {
                     if (in != null) {
                         try {
@@ -72,10 +75,10 @@ public class HTMLPageParser {
                         } catch (Exception e) {
                         }
                     }
-                }
-            } catch (Exception e) {
-                theLogger.log(Level.SEVERE, "Parsing exception", e);
-                int j = 0;
+                }          
+//            }  catch (Exception e) {
+//                theLogger.log(Level.SEVERE, "Parsing general exception", e);
+//                throw e;
             } finally {
                 // When HttpClient instance is no longer needed,
                 // shut down the connection manager to ensure
