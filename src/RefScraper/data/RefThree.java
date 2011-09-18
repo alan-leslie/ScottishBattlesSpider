@@ -250,7 +250,7 @@ public class RefThree implements Comparable {
                 }
             }
 
-            theResult = thePage.getResult();
+            theResult = thePage.getResult().replace("&", "and");
 
             if (isPeriodSet()) {
                 dateString = thePeriod.asLongString();
