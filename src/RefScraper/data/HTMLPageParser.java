@@ -60,7 +60,7 @@ public class HTMLPageParser {
                 try {
                     DocumentBuilder builder = factory.newDocumentBuilder();
                     in = theEntity.getContent();
-                    Reader reader = new InputStreamReader(in, "ISO-8859-1");
+                    Reader reader = new InputStreamReader(in, "UTF8");
 
                     theResult = builder.newDocument();
                     HtmlParser parser = new HtmlParser(uacontext, theResult);
