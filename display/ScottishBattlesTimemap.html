@@ -1,0 +1,162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html><head>
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+    <title>Scottish Battles Timemap</title>
+    <link rel="stylesheet" href="./master.css" type="text/css" media="screen" charset="utf-8">
+
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.6.2.js"></script>
+    <script type="text/javascript" src="http://openlayers.org/api/OpenLayers.js"></script> 
+   	<script src="./mxn/source/mxn.js?(openlayers)" type="text/javascript"></script>
+    <!-- <script type="text/javascript" src="http://static.simile.mit.edu/timeline/api-2.3.0/timeline-api.js?bundle=true"></script> -->
+    <!-- changes made locally to correct issue 278 - iphone gestures -->
+    <script src="timeline_2.3.0/src/webapp/api/timeline-api.js?bundle=true" type="text/javascript"></script>
+    <script type="text/javascript" src="./timemap_src/src/timemap.js"></script>  
+    <script type="text/javascript" src="./timemap_src/src/param.js"></script>
+    <script type="text/javascript" src="./timemap_src/src/loaders/xml.js"></script>
+    <script type="text/javascript" src="./timemap_src/src/loaders/kml.js"></script> 
+
+   <!-- Load the customisations required for the zoombar -->
+   <script src="./timeline_zoom_overrides.js" type="text/javascript"></script>
+   <script src="./TimelineBandZoomBar.js" type="text/javascript"></script>
+
+   <link rel="stylesheet" href="./timemaps.css" type="text/css">
+   <link rel="stylesheet" href="./TimelineBandZoomBar.css" type="text/css">
+   
+   <!-- Load the customisations required to get the correct multiple event behaviour -->
+   <script src="./timemap_overrides.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+   
+var tm;
+
+$(function() {       
+	var theme3 = Timeline.ClassicTheme.create();
+	theme3.autoWidth = false; 
+
+	theme3.timeline_start = new Date(Date.UTC(600, 1,1));
+	theme3.timeline_stop  = new Date(Date.UTC(1900, 1, 1));
+	theme3.mouseWheel = 'zoom';
+	theme3.icon = "./img/Battle_icon.png"
+	var iconSize = new Array();
+	iconSize.push(26);
+	iconSize.push(18);
+	theme3.iconSize = iconSize;
+	var iconAnchor = new Array();
+	iconAnchor.push(13);
+	iconAnchor.push(9);
+	theme3.iconAnchor = iconAnchor;
+
+	var d = "Tue Sep 13 1644 13:00:00 GMT-0000";
+
+    var greatestMag = new Object();
+	greatestMag.pixelsPerInterval = 450;
+	greatestMag.unit = Timeline.DateTime.DECADE;
+	var leastMag = new Object();
+	leastMag.pixelsPerInterval = 85;
+	leastMag.unit = Timeline.DateTime.CENTURY;
+	var theZoomSteps = initZoomSteps(12, greatestMag, leastMag);
+	var theZoomIndex = 5;
+	var theIntervalUnit = theZoomSteps[theZoomIndex].unit;
+	var theIntervalPixels = theZoomSteps[theZoomIndex].pixelsPerInterval;
+
+    var theMapZoom = 5;
+    var lon = -3.5;
+	var lat = 56.4;
+	var theMapCenter = new mxn.LatLonPoint()
+	theMapCenter.lon = lon;
+	theMapCenter.lat = lat;
+	theMapCenter.lng = lon;
+
+	tm = TimeMap.init({
+		mapId: "map",               // Id of map div element (required)
+		timelineId: "timeline",     // Id of timeline div element (required)
+		scrollTo: d,
+		//dataDisplayedFunction: testDataDisplayed,
+		options: {
+		    eventIconPath: "timemap/images/",
+		    centerOnItems: false,
+		    mapCenter: theMapCenter,
+		    mapZoom: theMapZoom
+		},
+		datasets: [
+		    {
+			title: "Scottish battles",
+			theme: theme3, //"red",
+			type: "kml",     // Data to be loaded in KML - must be a local URL
+			options: {
+			    url: "./kml/battles.kml", // KML file to load
+			   extendedData: ["Result",  "DateString", "Url"],
+			    tagMap: {
+				"Url":"wiki_link"
+			    },
+			     // template for loaded data
+			    infoTemplate: '<strong><a href="{{wiki_link}}" target="_blank">{{title}}</a><br><br> ' +
+					  '<strong>Date:</strong> {{DateString}}<br>' +
+					  '<strong>Result:</strong> {{Result}}<br>' 
+			}
+		    }
+		],
+		bandInfo: [
+		    {
+		       width:          "100%", 
+				intervalUnit:   theIntervalUnit, 
+				intervalPixels: theIntervalPixels,
+				date:           d,
+				theme:          theme3,
+				layout:         'original',  // original, overview, detailed
+				zoomIndex:      theZoomIndex,
+				zoomSteps:      theZoomSteps
+		     } 
+		]
+	});
+    
+	var theTimeline = tm.timeline;
+	var theBandNo = 0;
+	var tmZoomBar = new TimelineBandZoomBar(theTimeline, theBandNo);
+	theTimeline.ZoomBar = tmZoomBar;  
+	
+});
+
+    </script>
+   </head>
+  <body>
+    <div id="wrapper">
+      <div id="header">
+        <h1>Scottish Battles Timemap</h1>
+      </div>
+      <div id="content">	
+	<p>
+	For data that has both a time it took place and a location it is nice to be able to view it on a map and on a timeline.
+	A timemap allows you to do this. 
+	It can be browsed by panning, or by zooming in or out using the zoom control, on either the map or the timeline. 
+	</p>
+		
+	<p>
+	This timemap that shows the dates of battles in Scotland or involving Scottish troops up until around 1715. 
+	</p>
+
+     <div id="timemap">
+        <div id="timelinecontainer">
+          <div id="timeline" class="timeline"></div>
+        </div>
+        <div id="mapcontainer">
+          <div id="map" class="map"></div>
+        </div>
+    </div>
+    
+    <p>
+	The data is extracted by the <a href="http://github.com/alan-leslie/ScottishBattlesSpider">ScottishBattlesScraper</a> from Wikipedia in September 2011.
+	</p>
+	
+	<h3 id="implementation_details">Implementation</h3>
+
+	<p>
+	The timemap is a <a href="http://code.google.com/p/timemap/">MIT timemap</a> version 2.0.1. 
+	The map framework is <a href="http://openlayers.org/">OpenLayers</a> with <a href="http://www.openstreetmap.org/">OpenStreetMap</a> layer.
+	The MIT timemap has been written so that it is simple to port the map to Google Maps or Bing Maps.
+	</p>
+	
+	<p>
+	The icons are from wikimedia: <a href="http://fr.wikipedia.org/wiki/Fichier:Battle_icon_%28crossed_swords%29.svg">battle icon</a>.
+	</p>
+</body></html>
